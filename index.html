@@ -2,10 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <!-- Mobile-first scaling (important on Android) -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Intentional Bingo</title>
+
   <meta name="theme-color" content="#0f5c66" />
   <link rel="manifest" href="manifest.json" />
+
   <style>
     :root{
       --teal:#0f5c66;
@@ -17,481 +20,43 @@
       --shadow: 0 8px 24px rgba(0,0,0,.08);
       --radius: 18px;
     }
+
+    *{ box-sizing: border-box; }
+
     body{
       margin:0;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       background:var(--bg);
       color:var(--text);
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
     }
+
     header{
-      padding: 16px 12px 8px;
+      padding:16px 12px 8px;
       max-width: 100%;
+      width: 100%;
       margin: 0 auto;
-      box-sizing: border-box;
     }
+
     h1{
       margin:0 0 6px;
       font-size: 22px;
       font-weight: 750;
       letter-spacing: .2px;
     }
+
     .subtitle{
       color:var(--sub);
       font-size: 13px;
       margin-bottom: 12px;
+      line-height: 1.35;
     }
+
     .bar{
       display:flex;
       gap:10px;
       flex-wrap:wrap;
       align-items:center;
       justify-content:space-between;
-      margin: 10px 0 14px;
-    }
-    .bar-left, .bar-right{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
-    }
-    select, button, input[type="text"]{
-      border: 1px solid #d7dde2;
-      background: var(--card);
-      border-radius: 12px;
-      padding: 10px 12px;
-      font-size: 14px;
-      color: var(--text);
-      box-shadow: 0 1px 0 rgba(0,0,0,.02);
-    }
-    button{
-      cursor:pointer;
-      font-weight: 650;
-    }
-    button.primary{
-      background: var(--teal);
-      color: white;
-      border-color: transparent;
-    }
-    button.warn{
-      background:#fff;
-      border-color:#f0c6c6;
-      color:#9b1c1c;
-    }
-    button:active{
-      transform: translateY(1px);
-    }
-    .wrap{
-      max-width: 100%;
-      width: 100%;
-      margin: 0 auto;
-      padding: 0 12px 24px;
-      box-sizing: border-box;
-    }
-    .panel{
-      background: var(--card);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 14px;
-    }
-    .grid{
-      display:grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap:10px;
-      margin-top: 10px;
-    }
-    .cell{
-      background: #f9fbfc;
-      border: 1px solid #e2e7eb;
-      border-radius: 16px;
-      min-height: 84px;
-      padding: 10px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      text-align:center;
-      line-height:1.2;
-      font-size: 14px;
-      user-select:none;
-      position:relative;
-      transition: transform .06s ease, background .15s ease, border-color .15s ease;
-    }
-    .cell:active{ transform: scale(.99); }
-    .cell.done{
-      background: rgba(15,92,102,.10);
-      border-color: rgba(15,92,102,.35);
-    }
-    .cell .check{
-      position:absolute;
-      top:8px;
-      right:10px;
-      font-size: 16px;
-      opacity: .0;
-      transition: opacity .12s ease;
-    }
-    .cell.done .check{ opacity: 1; }
-    .cell.center{
-      background: var(--muted);
-      border-color: #d5dde3;
-      font-weight: 800;
-      letter-spacing: .6px;
-    }
-    .meta{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      justify-content:space-between;
-      align-items:center;
-      margin-top: 12px;
-      color: var(--sub);
-      font-size: 13px;
-    }
-    .pill{
-      padding: 7px 10px;
-      border-radius: 999px;
-      background: #eef2f5;
-      border: 1px solid #dde5ea;
-      color: #334049;
-      font-weight: 650;
-      font-size: 12px;
-    }
-    .divider{ height:1px; background:#e8edf1; margin: 14px 0; }
-    textarea{
-      width:100%;
-      min-height: 86px;
-      border: 1px solid #d7dde2;
-      border-radius: 12px;
-      padding: 10px 12px;
-      font-size: 13px;
-      box-sizing:border-box;
-    }
-    .row{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap:10px;
-    }
-    @media (min-width: 780px){
-      .row{ grid-template-columns: 1fr 1fr; }
-    }
-    .small{
-      font-size: 12px;
-      color: var(--sub);
-      margin-top: 6px;
-      line-height: 1.35;
-    }
-    .edit-indicator{
-      font-weight: 800;
-      color: var(--teal);
-    }
-    @media (max-width: 480px){
-  h1{
-    font-size: 20px;
-  }
-
-  .subtitle{
-    font-size: 12px;
-  }
-
-  .grid{
-    gap: 8px;
-  }
-
-  .cell{
-    min-height: 58px;
-    font-size: 12.5px;
-  }
-
-  button, select{
-    padding: 9px 10px;
-    font-size: 13px;
-  }
-}
-  </style>
-</head>
-
-<body>
-<header>
-  <h1>Intentional Bingo</h1>
-  <div class="subtitle">
-    Tap tiles to mark complete. Turn on <span class="edit-indicator">Edit Mode</span> to change tiles.
-  </div>
-
-  <div class="bar">
-    <div class="bar-left">
-      <label>
-        <select id="monthSelect" aria-label="Month"></select>
-      </label>
-      <button id="editBtn" class="primary">Edit Mode: OFF</button>
-      <button id="resetBtn" class="warn">Reset Month</button>
-    </div>
-
-    <div class="bar-right">
-      <button id="exportBtn">Export</button>
-      <button id="importBtn">Import</button>
-    </div>
-  </div>
-</header>
-
-<div class="wrap">
-  <div class="panel">
-    <div class="grid" id="grid"></div>
-
-    <div class="meta">
-      <div class="pill" id="progressPill">0/24 complete</div>
-      <div id="statusText">Stored on this device (offline).</div>
-    </div>
-
-    <div class="divider"></div>
-
-    <div class="row">
-      <div>
-        <strong>Export / Backup</strong>
-        <div class="small">Tap <b>Export</b> to copy your boards as text. Save it in Notes or email it to yourself.</div>
-      </div>
-      <div>
-        <strong>Import</strong>
-        <div class="small">Tap <b>Import</b> and paste an export to restore everything (overwrites current data).</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script>
-(() => {
-  const MONTHS = [
-    "January","February","March","April","May","June",
-    "July","August","September","October","November","December"
-  ];
-
-  const LS_KEY = "intentional_bingo_v1";
-
-  const defaultBoard = () => {
-    // 25 cells, index 12 is center (row 3 col 3, 0-based)
-    // Keep these as “starter” squares you can edit any month.
-    const tiles = Array(25).fill("");
-    tiles[0] = "Eat something you’ve NEVER had before";
-    tiles[1] = "Phone off by 10:00pm (10 nights)";
-    tiles[2] = "Stretch or Yoga in MY Spot (10x)";
-    tiles[3] = "Jump 50 times (10 days)";
-    tiles[4] = "Plan a Mini Adventure (1x)";
-
-    tiles[5] = "No phone for first 60 min (10 mornings)";
-    tiles[6] = "Coffee with someone who energizes me";
-    tiles[7] = "Create before consume (10x)";
-    tiles[8] = "15-min walk outside (10x)";
-    tiles[9] = "Try a new place in town (1x)";
-
-    tiles[10] = "Write 1 INTENTION for the day (10x)";
-    tiles[11] = "Say NO to something draining (1x)";
-    tiles[12] = "INTENTIONAL";
-    tiles[13] = "Do something brave (1x)";
-    tiles[14] = "Plan something for Italy / travel (1x)";
-
-    tiles[15] = "Journal before bed (8x)";
-    tiles[16] = "Alcohol-free weeknights (10 nights)";
-    tiles[17] = "Quality time with Julie (1x)";
-    tiles[18] = "Deep convo with a friend (1x)";
-    tiles[19] = "Early bedtime (2 nights)";
-
-    tiles[20] = "Start / advance 1 creative project (1x)";
-    tiles[21] = "Organize a calm space (1x)";
-    tiles[22] = "Write ‘Today I’m proud of…’ (8x)";
-    tiles[23] = "Do a photo challenge (1x)";
-    tiles[24] = "One joyful treat, intentionally (1x)";
-
-    return {
-      tiles,
-      done: Array(25).fill(false),
-      updatedAt: Date.now()
-    };
-  };
-
-  const $month = document.getElementById("monthSelect");
-  const $grid = document.getElementById("grid");
-  const $editBtn = document.getElementById("editBtn");
-  const $resetBtn = document.getElementById("resetBtn");
-  const $exportBtn = document.getElementById("exportBtn");
-  const $importBtn = document.getElementById("importBtn");
-  const $progress = document.getElementById("progressPill");
-  const $status = document.getElementById("statusText");
-
-  let state = loadState();
-  let editMode = false;
-
-  function loadState(){
-    try{
-      const raw = localStorage.getItem(LS_KEY);
-      if(!raw){
-        const s = { boards: {} };
-        MONTHS.forEach((m, i) => s.boards[i] = defaultBoard());
-        localStorage.setItem(LS_KEY, JSON.stringify(s));
-        return s;
-      }
-      const parsed = JSON.parse(raw);
-      // migrate if needed
-      if(!parsed.boards){
-        const s = { boards: {} };
-        MONTHS.forEach((m, i) => s.boards[i] = defaultBoard());
-        localStorage.setItem(LS_KEY, JSON.stringify(s));
-        return s;
-      }
-      // Ensure all months exist
-      MONTHS.forEach((m, i) => {
-        if(!parsed.boards[i]) parsed.boards[i] = defaultBoard();
-      });
-      return parsed;
-    }catch(e){
-      const s = { boards: {} };
-      MONTHS.forEach((m, i) => s.boards[i] = defaultBoard());
-      return s;
-    }
-  }
-
-  function saveState(){
-    localStorage.setItem(LS_KEY, JSON.stringify(state));
-  }
-
-  function initMonthSelect(){
-    MONTHS.forEach((m, i) => {
-      const opt = document.createElement("option");
-      opt.value = String(i);
-      opt.textContent = m;
-      $month.appendChild(opt);
-    });
-    const now = new Date();
-    $month.value = String(now.getMonth());
-  }
-
-  function getBoard(){
-    const idx = Number($month.value);
-    return state.boards[idx];
-  }
-
-  function setEditMode(on){
-    editMode = on;
-    $editBtn.textContent = `Edit Mode: ${editMode ? "ON" : "OFF"}`;
-    $editBtn.classList.toggle("primary", !editMode);
-    $editBtn.style.background = editMode ? "#ffffff" : "";
-    $editBtn.style.color = editMode ? "var(--teal)" : "";
-    $editBtn.style.borderColor = editMode ? "rgba(15,92,102,.35)" : "";
-    render();
-  }
-
-  function render(){
-    const board = getBoard();
-    $grid.innerHTML = "";
-
-    for(let i=0;i<25;i++){
-      const cell = document.createElement("div");
-      cell.className = "cell";
-      const isCenter = (i === 12);
-      if(isCenter) cell.classList.add("center");
-      if(board.done[i]) cell.classList.add("done");
-
-      const check = document.createElement("div");
-      check.className = "check";
-      check.textContent = "✓";
-      cell.appendChild(check);
-
-      const text = document.createElement("div");
-      text.textContent = board.tiles[i] || "";
-      cell.appendChild(text);
-
-      cell.addEventListener("click", () => {
-        if(isCenter) return;
-
-        if(editMode){
-          const current = board.tiles[i] || "";
-          const next = prompt("Edit square text:", current);
-          if(next === null) return; // cancelled
-          board.tiles[i] = next.trim();
-          board.updatedAt = Date.now();
-          saveState();
-          render();
-          return;
-        }
-
-        board.done[i] = !board.done[i];
-        board.updatedAt = Date.now();
-        saveState();
-        render();
-      });
-
-      $grid.appendChild(cell);
-    }
-
-    const doneCount = board.done.filter((v, i) => v && i !== 12).length; // exclude center
-    $progress.textContent = `${doneCount}/24 complete`;
-    const dt = new Date(board.updatedAt);
-    $status.textContent = `Saved on this phone • Last updated ${dt.toLocaleString()}`;
-  }
-
-  function resetMonth(){
-    const m = MONTHS[Number($month.value)];
-    const ok = confirm(`Reset ${m}? This clears checkmarks (keeps text).`);
-    if(!ok) return;
-    const board = getBoard();
-    board.done = Array(25).fill(false);
-    board.done[12] = false; // center stays visually special but not "done"
-    board.updatedAt = Date.now();
-    saveState();
-    render();
-  }
-
-  function exportAll(){
-    const payload = {
-      version: 1,
-      exportedAt: Date.now(),
-      boards: state.boards
-    };
-    const txt = JSON.stringify(payload);
-    // Copy to clipboard if possible; fallback to prompt
-    if(navigator.clipboard?.writeText){
-      navigator.clipboard.writeText(txt).then(() => {
-        alert("Export copied to clipboard. Paste into Notes to save it.");
-      }).catch(() => {
-        prompt("Copy this export text:", txt);
-      });
-    } else {
-      prompt("Copy this export text:", txt);
-    }
-  }
-
-  function importAll(){
-    const txt = prompt("Paste export text to import (this overwrites current data):");
-    if(!txt) return;
-    try{
-      const payload = JSON.parse(txt);
-      if(!payload.boards) throw new Error("Missing boards");
-      state = { boards: payload.boards };
-      // Ensure all months exist
-      MONTHS.forEach((m, i) => {
-        if(!state.boards[i]) state.boards[i] = defaultBoard();
-      });
-      saveState();
-      alert("Import complete!");
-      render();
-    } catch(e){
-      alert("Import failed. That text didn't look like a valid export.");
-    }
-  }
-
-  // Events
-  $month.addEventListener("change", render);
-  $editBtn.addEventListener("click", () => setEditMode(!editMode));
-  $resetBtn.addEventListener("click", resetMonth);
-  $exportBtn.addEventListener("click", exportAll);
-  $importBtn.addEventListener("click", importAll);
-
-  // Init
-  initMonthSelect();
-  setEditMode(false);
-  render();
-
-  // PWA service worker
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("sw.js").catch(() => {});
-  }
-})();
-</script>
-</body>
-</html>
+      margin: 10px 0

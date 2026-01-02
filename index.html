@@ -351,38 +351,44 @@
   const LS_KEY = "intentional_bingo_v2"; // bumped for celebration fields
 
   const defaultBoard = () => {
-    const tiles = Array(25).fill("");
-    tiles[0] = "Eat something you’ve NEVER had before";
-    tiles[1] = "Phone off by 10:00pm (10 nights)";
-    tiles[2] = "Stretch or Yoga in MY Spot (10x)";
-    tiles[3] = "Jump 50 times (10 days)";
-    tiles[4] = "Plan a Mini Adventure (1x)";
+  const tiles = Array(25).fill("");
 
-    tiles[5] = "No phone for first 60 min (10 mornings)";
-    tiles[6] = "Coffee with someone who energizes me";
-    tiles[7] = "Create before consume (10x)";
-    tiles[8] = "15-min walk outside (10x)";
-    tiles[9] = "Try a new place in town (1x)";
+  // Row 1 — Health & Energy
+  tiles[0] = "Health Challenge #1";
+  tiles[1] = "Movement Goal #1";
+  tiles[2] = "Nutrition Focus #1";
+  tiles[3] = "Sleep Habit #1";
+  tiles[4] = "Body Care Practice #1";
 
-    tiles[10] = "Write 1 INTENTION for the day (10x)";
-    tiles[11] = "Say NO to something draining (1x)";
-    tiles[12] = "INTENTIONAL";
-    tiles[13] = "Do something brave (1x)";
-    tiles[14] = "Plan something for Italy / travel (1x)";
+  // Row 2 — Mind & Focus
+  tiles[5] = "Focus Habit #1";
+  tiles[6] = "Morning Routine #1";
+  tiles[7] = "Reduce Distraction #1";
+  tiles[8] = "Learning Goal #1";
+  tiles[9] = "Digital Boundary #1";
 
-    tiles[15] = "Journal before bed (8x)";
-    tiles[16] = "Alcohol-free weeknights (10 nights)";
-    tiles[17] = "Quality time with Julie (1x)";
-    tiles[18] = "Deep convo with a friend (1x)";
-    tiles[19] = "Early bedtime (2 nights)";
+  // Row 3 — Personal Growth
+  tiles[10] = "Personal Growth Goal #1";
+  tiles[11] = "Confidence Practice #1";
+  tiles[12] = "INTENTIONAL";
+  tiles[13] = "Do One Brave Thing";
+  tiles[14] = "Reflect on a Win";
 
-    tiles[20] = "Start / advance 1 creative project (1x)";
-    tiles[21] = "Organize a calm space (1x)";
-    tiles[22] = "Write ‘Today I’m proud of…’ (8x)";
-    tiles[23] = "Do a photo challenge (1x)";
-    tiles[24] = "One joyful treat, intentionally (1x)";
+  // Row 4 — Relationships
+  tiles[15] = "Meaningful Conversation";
+  tiles[16] = "Quality Time with Someone Important";
+  tiles[17] = "Express Appreciation";
+  tiles[18] = "Ask for Help or Support";
+  tiles[19] = "Connection Challenge #1";
 
-    return {
+  // Row 5 — Joy & Creativity
+  tiles[20] = "Creative Project #1";
+  tiles[21] = "Try Something New";
+  tiles[22] = "Mini Adventure";
+  tiles[23] = "Joyful Treat (Intentional)";
+  tiles[24] = "Create Without a Goal";
+
+      return {
       tiles,
       done: Array(25).fill(false),
       celebrated: { lines: {}, full: false }, // NEW: remember celebrations

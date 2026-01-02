@@ -130,8 +130,8 @@
       background: #f9fbfc;
       border: 1px solid #e2e7eb;
       border-radius: 16px;
-      min-height: 64px;     /* mobile-friendly */
-      padding: 8px;         /* mobile-friendly */
+      min-height: 64px;
+      padding: 8px;
       display:flex;
       align-items:center;
       justify-content:center;
@@ -238,6 +238,55 @@
         padding: 12px;
       }
     }
+
+    /* ===== Celebrations (toast + confetti) ===== */
+    .toast{
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      background: rgba(26,31,36,.92);
+      color: white;
+      padding: 12px 14px;
+      border-radius: 14px;
+      font-size: 14px;
+      font-weight: 700;
+      box-shadow: 0 10px 30px rgba(0,0,0,.2);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s ease, transform .18s ease;
+      z-index: 9999;
+      max-width: calc(100vw - 24px);
+      text-align: center;
+    }
+    .toast.show{
+      opacity: 1;
+      transform: translateX(-50%) translateY(-6px);
+    }
+
+    .confetti-layer{
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 9998;
+    }
+
+    .confetti{
+      position: absolute;
+      width: 10px;
+      height: 14px;
+      border-radius: 4px;
+      opacity: .95;
+      animation: fall linear forwards;
+      will-change: transform;
+      filter: drop-shadow(0 2px 1px rgba(0,0,0,.12));
+    }
+
+    @keyframes fall{
+      0%   { transform: translate3d(0, -20px, 0) rotate(0deg);   opacity: 1; }
+      100% { transform: translate3d(0, 110vh, 0) rotate(720deg); opacity: 1; }
+    }
   </style>
 </head>
 
@@ -288,6 +337,10 @@
   </div>
 </div>
 
+<!-- Celebration UI -->
+<div class="confetti-layer" id="confettiLayer" aria-hidden="true"></div>
+<div class="toast" id="toast" aria-live="polite"></div>
+
 <script>
 (() => {
   const MONTHS = [
@@ -295,7 +348,7 @@
     "July","August","September","October","November","December"
   ];
 
-  const LS_KEY = "intentional_bingo_v1";
+  const LS_KEY = "intentional_bingo_v2"; // bumped for celebration fields
 
   const defaultBoard = () => {
     const tiles = Array(25).fill("");
@@ -332,10 +385,12 @@
     return {
       tiles,
       done: Array(25).fill(false),
+      celebrated: { lines: {}, full: false }, // NEW: remember celebrations
       updatedAt: Date.now()
     };
   };
 
+  // Elements
   const $month = document.getElementById("monthSelect");
   const $grid = document.getElementById("grid");
   const $editBtn = document.getElementById("editBtn");
@@ -344,41 +399,70 @@
   const $importBtn = document.getElementById("importBtn");
   const $progress = document.getElementById("progressPill");
   const $status = document.getElementById("statusText");
+  const $toast = document.getElementById("toast");
+  const $confettiLayer = document.getElementById("confettiLayer");
 
   let state = loadState();
   let editMode = false;
 
+  // ===== Persistence =====
   function loadState(){
-    try{
-      const raw = localStorage.getItem(LS_KEY);
-      if(!raw){
-        const s = { boards: {} };
-        MONTHS.forEach((m, i) => s.boards[i] = defaultBoard());
-        localStorage.setItem(LS_KEY, JSON.stringify(s));
-        return s;
-      }
-      const parsed = JSON.parse(raw);
-      if(!parsed.boards){
-        const s = { boards: {} };
-        MONTHS.forEach((m, i) => s.boards[i] = defaultBoard());
-        localStorage.setItem(LS_KEY, JSON.stringify(s));
-        return s;
-      }
-      MONTHS.forEach((m, i) => {
-        if(!parsed.boards[i]) parsed.boards[i] = defaultBoard();
-      });
-      return parsed;
-    }catch(e){
-      const s = { boards: {} };
-      MONTHS.forEach((m, i) => s.boards[i] = defaultBoard());
-      return s;
+    // Try v2 first; if missing, migrate from v1 (so you don’t lose your boards)
+    const rawV2 = localStorage.getItem(LS_KEY);
+    if(rawV2){
+      try{
+        const parsed = JSON.parse(rawV2);
+        normalizeState(parsed);
+        return parsed;
+      } catch(e){}
     }
+
+    const rawV1 = localStorage.getItem("intentional_bingo_v1");
+    if(rawV1){
+      try{
+        const parsedV1 = JSON.parse(rawV1);
+        // migrate into v2 structure
+        const migrated = { boards: {} };
+        MONTHS.forEach((m, i) => {
+          const b = parsedV1.boards?.[i] ? parsedV1.boards[i] : defaultBoard();
+          migrated.boards[i] = {
+            tiles: b.tiles || defaultBoard().tiles,
+            done: b.done || Array(25).fill(false),
+            celebrated: { lines: {}, full: false },
+            updatedAt: b.updatedAt || Date.now()
+          };
+        });
+        localStorage.setItem(LS_KEY, JSON.stringify(migrated));
+        return migrated;
+      } catch(e){}
+    }
+
+    // fresh install
+    const fresh = { boards: {} };
+    MONTHS.forEach((m, i) => fresh.boards[i] = defaultBoard());
+    localStorage.setItem(LS_KEY, JSON.stringify(fresh));
+    return fresh;
+  }
+
+  function normalizeState(s){
+    if(!s.boards) s.boards = {};
+    MONTHS.forEach((m, i) => {
+      if(!s.boards[i]) s.boards[i] = defaultBoard();
+      const b = s.boards[i];
+      if(!Array.isArray(b.tiles) || b.tiles.length !== 25) b.tiles = defaultBoard().tiles;
+      if(!Array.isArray(b.done) || b.done.length !== 25) b.done = Array(25).fill(false);
+      if(!b.celebrated) b.celebrated = { lines: {}, full: false };
+      if(!b.celebrated.lines) b.celebrated.lines = {};
+      if(typeof b.celebrated.full !== "boolean") b.celebrated.full = false;
+      if(!b.updatedAt) b.updatedAt = Date.now();
+    });
   }
 
   function saveState(){
     localStorage.setItem(LS_KEY, JSON.stringify(state));
   }
 
+  // ===== UI =====
   function initMonthSelect(){
     MONTHS.forEach((m, i) => {
       const opt = document.createElement("option");
@@ -386,13 +470,11 @@
       opt.textContent = m;
       $month.appendChild(opt);
     });
-    const now = new Date();
-    $month.value = String(now.getMonth());
+    $month.value = String(new Date().getMonth());
   }
 
   function getBoard(){
-    const idx = Number($month.value);
-    return state.boards[idx];
+    return state.boards[Number($month.value)];
   }
 
   function setEditMode(on){
@@ -442,6 +524,10 @@
         board.done[i] = !board.done[i];
         board.updatedAt = Date.now();
         saveState();
+
+        // celebrate if this click created a new bingo line or completed the card
+        checkCelebrations();
+
         render();
       });
 
@@ -454,12 +540,123 @@
     $status.textContent = `Saved on this phone • Last updated ${dt.toLocaleString()}`;
   }
 
+  // ===== Bingo detection + celebrations =====
+  const LINES = (() => {
+    const lines = [];
+    // rows
+    for(let r=0;r<5;r++){
+      lines.push([...Array(5)].map((_,c)=> r*5 + c));
+    }
+    // cols
+    for(let c=0;c<5;c++){
+      lines.push([...Array(5)].map((_,r)=> r*5 + c));
+    }
+    // diagonals
+    lines.push([0,6,12,18,24]);
+    lines.push([4,8,12,16,20]);
+    return lines;
+  })();
+
+  function isIndexComplete(board, idx){
+    // center is a "free" square for bingo logic
+    if(idx === 12) return true;
+    return !!board.done[idx];
+  }
+
+  function completedLines(board){
+    const completed = [];
+    LINES.forEach((line, i) => {
+      const ok = line.every(idx => isIndexComplete(board, idx));
+      if(ok) completed.push(i);
+    });
+    return completed;
+  }
+
+  function isFullCard(board){
+    // full card = all non-center tiles done
+    for(let i=0;i<25;i++){
+      if(i === 12) continue;
+      if(!board.done[i]) return false;
+    }
+    return true;
+  }
+
+  function checkCelebrations(){
+    const board = getBoard();
+
+    // 1) new line celebrations
+    const nowCompleted = completedLines(board);
+    const newly = nowCompleted.filter(lineId => !board.celebrated.lines[String(lineId)]);
+    if(newly.length){
+      // mark them celebrated
+      newly.forEach(lineId => board.celebrated.lines[String(lineId)] = true);
+      board.updatedAt = Date.now();
+      saveState();
+
+      // toast + confetti
+      const msg = newly.length === 1 ? "BINGO! 🎉" : `BINGO x${newly.length}! 🎉`;
+      showToast(msg);
+      burstConfetti(newly.length >= 2 ? 90 : 60, newly.length >= 2 ? 1800 : 1400);
+    }
+
+    // 2) full card celebration (once)
+    const full = isFullCard(board);
+    if(full && !board.celebrated.full){
+      board.celebrated.full = true;
+      board.updatedAt = Date.now();
+      saveState();
+
+      showToast("FULL CARD! You did it ✨🎉");
+      burstConfetti(140, 2400);
+    }
+  }
+
+  // Toast
+  let toastTimer = null;
+  function showToast(text){
+    $toast.textContent = text;
+    $toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => $toast.classList.remove("show"), 1800);
+  }
+
+  // Confetti (simple + pretty)
+  function burstConfetti(count=60, durationMs=1400){
+    $confettiLayer.innerHTML = "";
+    const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+
+    // Use a palette but let the browser handle actual display; no specific brand colors required
+    const palette = ["#0f5c66","#2f7e88","#f0c6c6","#f4d06f","#9ad0ec","#c7f9cc","#ffffff","#334049"];
+
+    for(let i=0;i<count;i++){
+      const el = document.createElement("div");
+      el.className = "confetti";
+      el.style.left = Math.random() * vw + "px";
+      el.style.top = (-20 - Math.random()*60) + "px";
+      el.style.background = palette[Math.floor(Math.random()*palette.length)];
+      el.style.width = (7 + Math.random()*8) + "px";
+      el.style.height = (10 + Math.random()*14) + "px";
+      el.style.opacity = (0.75 + Math.random()*0.25).toFixed(2);
+
+      const fallMs = 900 + Math.random()*900;
+      el.style.animationDuration = fallMs + "ms";
+      el.style.animationDelay = (Math.random()*120) + "ms";
+
+      $confettiLayer.appendChild(el);
+    }
+
+    // cleanup
+    setTimeout(() => { $confettiLayer.innerHTML = ""; }, durationMs);
+  }
+
+  // ===== Actions =====
   function resetMonth(){
     const m = MONTHS[Number($month.value)];
-    const ok = confirm(`Reset ${m}? This clears checkmarks (keeps text).`);
+    const ok = confirm(`Reset ${m}? This clears checkmarks & celebrations (keeps text).`);
     if(!ok) return;
     const board = getBoard();
     board.done = Array(25).fill(false);
+    board.celebrated = { lines: {}, full: false };
     board.updatedAt = Date.now();
     saveState();
     render();
@@ -467,7 +664,7 @@
 
   function exportAll(){
     const payload = {
-      version: 1,
+      version: 2,
       exportedAt: Date.now(),
       boards: state.boards
     };
@@ -490,9 +687,7 @@
       const payload = JSON.parse(txt);
       if(!payload.boards) throw new Error("Missing boards");
       state = { boards: payload.boards };
-      MONTHS.forEach((m, i) => {
-        if(!state.boards[i]) state.boards[i] = defaultBoard();
-      });
+      normalizeState(state);
       saveState();
       alert("Import complete!");
       render();
@@ -501,16 +696,23 @@
     }
   }
 
-  $month.addEventListener("change", render);
+  // ===== Events =====
+  $month.addEventListener("change", () => {
+    render();
+    // (optional) do not auto-celebrate when switching months
+  });
+
   $editBtn.addEventListener("click", () => setEditMode(!editMode));
   $resetBtn.addEventListener("click", resetMonth);
   $exportBtn.addEventListener("click", exportAll);
   $importBtn.addEventListener("click", importAll);
 
+  // Init
   initMonthSelect();
   setEditMode(false);
   render();
 
+  // PWA service worker
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js").catch(() => {});
   }

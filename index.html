@@ -327,7 +327,7 @@
     <div class="row">
       <div>
         <strong>Export / Backup</strong>
-        <div class="small">Tap <b>Export</b> to copy your boards as text. Save it in Notes or email it to yourself.</div>
+        <div class="small">Tap <b>Export</b> to copy your boards as text. Save it in Notes, email it, or message it to yourself.</div>
       </div>
       <div>
         <strong>Import</strong>
@@ -348,50 +348,52 @@
     "July","August","September","October","November","December"
   ];
 
-  const LS_KEY = "intentional_bingo_v2"; // bumped for celebration fields
+  // Current storage key for this version
+  const LS_KEY = "intentional_bingo_v3";
 
+  // ===== Generic default board (shareable template) =====
   const defaultBoard = () => {
-  const tiles = Array(25).fill("");
+    const tiles = Array(25).fill("");
 
-  // Row 1 — Health & Energy
-  tiles[0] = "Health Challenge #1";
-  tiles[1] = "Movement Goal #1";
-  tiles[2] = "Nutrition Focus #1";
-  tiles[3] = "Sleep Habit #1";
-  tiles[4] = "Body Care Practice #1";
+    // Row 1 — Health & Energy
+    tiles[0]  = "Health Challenge #1";
+    tiles[1]  = "Movement Goal #1";
+    tiles[2]  = "Nutrition Focus #1";
+    tiles[3]  = "Sleep Habit #1";
+    tiles[4]  = "Body Care Practice #1";
 
-  // Row 2 — Mind & Focus
-  tiles[5] = "Focus Habit #1";
-  tiles[6] = "Morning Routine #1";
-  tiles[7] = "Reduce Distraction #1";
-  tiles[8] = "Learning Goal #1";
-  tiles[9] = "Digital Boundary #1";
+    // Row 2 — Mind & Focus
+    tiles[5]  = "Focus Habit #1";
+    tiles[6]  = "Morning Routine #1";
+    tiles[7]  = "Reduce Distraction #1";
+    tiles[8]  = "Learning Goal #1";
+    tiles[9]  = "Digital Boundary #1";
 
-  // Row 3 — Personal Growth
-  tiles[10] = "Personal Growth Goal #1";
-  tiles[11] = "Confidence Practice #1";
-  tiles[12] = "INTENTIONAL";
-  tiles[13] = "Do One Brave Thing";
-  tiles[14] = "Reflect on a Win";
+    // Row 3 — Personal Growth
+    tiles[10] = "Personal Growth Goal #1";
+    tiles[11] = "Confidence Practice #1";
+    tiles[12] = "INTENTIONAL";
+    tiles[13] = "Do One Brave Thing";
+    tiles[14] = "Reflect on a Win";
 
-  // Row 4 — Relationships
-  tiles[15] = "Meaningful Conversation";
-  tiles[16] = "Quality Time with Someone Important";
-  tiles[17] = "Express Appreciation";
-  tiles[18] = "Ask for Help or Support";
-  tiles[19] = "Connection Challenge #1";
+    // Row 4 — Relationships
+    tiles[15] = "Meaningful Conversation";
+    tiles[16] = "Quality Time with Someone Important";
+    tiles[17] = "Express Appreciation";
+    tiles[18] = "Ask for Help or Support";
+    tiles[19] = "Connection Challenge #1";
 
-  // Row 5 — Joy & Creativity
-  tiles[20] = "Creative Project #1";
-  tiles[21] = "Try Something New";
-  tiles[22] = "Mini Adventure";
-  tiles[23] = "Joyful Treat (Intentional)";
-  tiles[24] = "Create Without a Goal";
+    // Row 5 — Joy & Creativity
+    tiles[20] = "Creative Project #1";
+    tiles[21] = "Try Something New";
+    tiles[22] = "Mini Adventure";
+    tiles[23] = "Joyful Treat (Intentional)";
+    tiles[24] = "Create Without a Goal";
 
-      return {
+    return {
       tiles,
       done: Array(25).fill(false),
-      celebrated: { lines: {}, full: false }, // NEW: remember celebrations
+      celebrated: { lines: {}, full: false },
       updatedAt: Date.now()
     };
   };
@@ -411,39 +413,52 @@
   let state = loadState();
   let editMode = false;
 
-  // ===== Persistence =====
+  // ===== Persistence (with migration from v1/v2) =====
   function loadState(){
-    // Try v2 first; if missing, migrate from v1 (so you don’t lose your boards)
-    const rawV2 = localStorage.getItem(LS_KEY);
-    if(rawV2){
+    // Try v3 first
+    const rawV3 = localStorage.getItem(LS_KEY);
+    if(rawV3){
       try{
-        const parsed = JSON.parse(rawV2);
+        const parsed = JSON.parse(rawV3);
         normalizeState(parsed);
         return parsed;
       } catch(e){}
     }
 
+    // Try v2 (your celebrations version)
+    const rawV2 = localStorage.getItem("intentional_bingo_v2");
+    if(rawV2){
+      try{
+        const parsedV2 = JSON.parse(rawV2);
+        normalizeState(parsedV2);
+        localStorage.setItem(LS_KEY, JSON.stringify(parsedV2));
+        return parsedV2;
+      } catch(e){}
+    }
+
+    // Try v1 (your earlier version)
     const rawV1 = localStorage.getItem("intentional_bingo_v1");
     if(rawV1){
       try{
         const parsedV1 = JSON.parse(rawV1);
-        // migrate into v2 structure
         const migrated = { boards: {} };
         MONTHS.forEach((m, i) => {
-          const b = parsedV1.boards?.[i] ? parsedV1.boards[i] : defaultBoard();
+          const fallback = defaultBoard();
+          const b = parsedV1.boards?.[i] ? parsedV1.boards[i] : fallback;
           migrated.boards[i] = {
-            tiles: b.tiles || defaultBoard().tiles,
-            done: b.done || Array(25).fill(false),
+            tiles: Array.isArray(b.tiles) ? b.tiles : fallback.tiles,
+            done: Array.isArray(b.done) ? b.done : Array(25).fill(false),
             celebrated: { lines: {}, full: false },
             updatedAt: b.updatedAt || Date.now()
           };
         });
+        normalizeState(migrated);
         localStorage.setItem(LS_KEY, JSON.stringify(migrated));
         return migrated;
       } catch(e){}
     }
 
-    // fresh install
+    // Fresh install
     const fresh = { boards: {} };
     MONTHS.forEach((m, i) => fresh.boards[i] = defaultBoard());
     localStorage.setItem(LS_KEY, JSON.stringify(fresh));
@@ -455,11 +470,14 @@
     MONTHS.forEach((m, i) => {
       if(!s.boards[i]) s.boards[i] = defaultBoard();
       const b = s.boards[i];
+
       if(!Array.isArray(b.tiles) || b.tiles.length !== 25) b.tiles = defaultBoard().tiles;
       if(!Array.isArray(b.done) || b.done.length !== 25) b.done = Array(25).fill(false);
+
       if(!b.celebrated) b.celebrated = { lines: {}, full: false };
       if(!b.celebrated.lines) b.celebrated.lines = {};
       if(typeof b.celebrated.full !== "boolean") b.celebrated.full = false;
+
       if(!b.updatedAt) b.updatedAt = Date.now();
     });
   }
@@ -520,7 +538,7 @@
           const current = board.tiles[i] || "";
           const next = prompt("Edit square text:", current);
           if(next === null) return;
-          board.tiles[i] = next.trim();
+          board.tiles[i] = (next || "").trim();
           board.updatedAt = Date.now();
           saveState();
           render();
@@ -531,7 +549,7 @@
         board.updatedAt = Date.now();
         saveState();
 
-        // celebrate if this click created a new bingo line or completed the card
+        // Celebrate if this click created a new bingo line or completed the card
         checkCelebrations();
 
         render();
@@ -543,7 +561,7 @@
     const doneCount = board.done.filter((v, i) => v && i !== 12).length;
     $progress.textContent = `${doneCount}/24 complete`;
     const dt = new Date(board.updatedAt);
-    $status.textContent = `Saved on this phone • Last updated ${dt.toLocaleString()}`;
+    $status.textContent = `Saved on this device • Last updated ${dt.toLocaleString()}`;
   }
 
   // ===== Bingo detection + celebrations =====
@@ -564,7 +582,7 @@
   })();
 
   function isIndexComplete(board, idx){
-    // center is a "free" square for bingo logic
+    // center is a "free square" for bingo logic
     if(idx === 12) return true;
     return !!board.done[idx];
   }
@@ -594,12 +612,10 @@
     const nowCompleted = completedLines(board);
     const newly = nowCompleted.filter(lineId => !board.celebrated.lines[String(lineId)]);
     if(newly.length){
-      // mark them celebrated
       newly.forEach(lineId => board.celebrated.lines[String(lineId)] = true);
       board.updatedAt = Date.now();
       saveState();
 
-      // toast + confetti
       const msg = newly.length === 1 ? "BINGO! 🎉" : `BINGO x${newly.length}! 🎉`;
       showToast(msg);
       burstConfetti(newly.length >= 2 ? 90 : 60, newly.length >= 2 ? 1800 : 1400);
@@ -626,12 +642,11 @@
     toastTimer = setTimeout(() => $toast.classList.remove("show"), 1800);
   }
 
-  // Confetti (simple + pretty)
+  // Confetti
   function burstConfetti(count=60, durationMs=1400){
     $confettiLayer.innerHTML = "";
     const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
 
-    // Use a palette but let the browser handle actual display; no specific brand colors required
     const palette = ["#0f5c66","#2f7e88","#f0c6c6","#f4d06f","#9ad0ec","#c7f9cc","#ffffff","#334049"];
 
     for(let i=0;i<count;i++){
@@ -651,8 +666,75 @@
       $confettiLayer.appendChild(el);
     }
 
-    // cleanup
     setTimeout(() => { $confettiLayer.innerHTML = ""; }, durationMs);
+  }
+
+  // ===== Export / Import (fixed + painless) =====
+  function normalizeText(text){
+    return String(text || "")
+      .replace(/[\u2018\u2019]/g, "'")   // smart single quotes
+      .replace(/[\u201C\u201D]/g, '"')   // smart double quotes
+      .replace(/\u2026/g, "...")         // ellipsis
+      .replace(/\u00A0/g, " ")           // non-breaking spaces
+      .trim();
+  }
+
+  function sanitizeJSON(text){
+    // Backup sanitizer for copy/paste from any messaging app
+    return String(text || "")
+      .replace(/[\u2018\u2019]/g, "'")
+      .replace(/[\u201C\u201D]/g, '"')
+      .replace(/\u2026/g, "...")
+      .replace(/\u00A0/g, " ")
+      .trim();
+  }
+
+  function exportAll(){
+    // Clone and normalize all tile text before export so it pastes cleanly anywhere
+    const cleanBoards = JSON.parse(JSON.stringify(state.boards));
+    Object.values(cleanBoards).forEach(board => {
+      board.tiles = board.tiles.map(t => normalizeText(t));
+    });
+
+    const payload = {
+      version: 3,
+      exportedAt: Date.now(),
+      boards: cleanBoards
+    };
+
+    const txt = JSON.stringify(payload);
+
+    if(navigator.clipboard?.writeText){
+      navigator.clipboard.writeText(txt).then(() => {
+        alert("Export copied to clipboard.");
+      }).catch(() => {
+        prompt("Copy this export text:", txt);
+      });
+    } else {
+      prompt("Copy this export text:", txt);
+    }
+  }
+
+  function importAll(){
+    const txt = prompt("Paste export text to import (this overwrites current data):");
+    if(!txt) return;
+
+    try{
+      const cleaned = sanitizeJSON(txt);
+      const payload = JSON.parse(cleaned);
+
+      if(!payload.boards) throw new Error("Missing boards");
+
+      state = { boards: payload.boards };
+      normalizeState(state);
+      saveState();
+      alert("Import complete!");
+      render();
+
+    } catch(e){
+      console.error("Import failed:", e);
+      alert("Import failed. Please paste the full export text and try again.");
+    }
   }
 
   // ===== Actions =====
@@ -668,44 +750,9 @@
     render();
   }
 
-  function exportAll(){
-    const payload = {
-      version: 2,
-      exportedAt: Date.now(),
-      boards: state.boards
-    };
-    const txt = JSON.stringify(payload);
-    if(navigator.clipboard?.writeText){
-      navigator.clipboard.writeText(txt).then(() => {
-        alert("Export copied to clipboard. Paste into Notes to save it.");
-      }).catch(() => {
-        prompt("Copy this export text:", txt);
-      });
-    } else {
-      prompt("Copy this export text:", txt);
-    }
-  }
-
-  function importAll(){
-    const txt = prompt("Paste export text to import (this overwrites current data):");
-    if(!txt) return;
-    try{
-      const payload = JSON.parse(txt);
-      if(!payload.boards) throw new Error("Missing boards");
-      state = { boards: payload.boards };
-      normalizeState(state);
-      saveState();
-      alert("Import complete!");
-      render();
-    } catch(e){
-      alert("Import failed. That text didn't look like a valid export.");
-    }
-  }
-
   // ===== Events =====
   $month.addEventListener("change", () => {
     render();
-    // (optional) do not auto-celebrate when switching months
   });
 
   $editBtn.addEventListener("click", () => setEditMode(!editMode));

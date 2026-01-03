@@ -287,6 +287,76 @@
       0%   { transform: translate3d(0, -20px, 0) rotate(0deg);   opacity: 1; }
       100% { transform: translate3d(0, 110vh, 0) rotate(720deg); opacity: 1; }
     }
+    /* ===== Import/Export modal (replaces prompt to avoid truncation) ===== */
+.modal-backdrop{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.35);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding: 14px;
+  z-index: 10000;
+}
+.modal{
+  width: min(920px, 100%);
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 18px 60px rgba(0,0,0,.25);
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+.modal-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid #e6ecef;
+}
+.modal-title{
+  font-weight: 800;
+}
+.modal-close{
+  border: 1px solid #d7dde2;
+  background: #fff;
+  border-radius: 12px;
+  padding: 8px 10px;
+  font-weight: 800;
+}
+.modal-textarea{
+  width: 100%;
+  min-height: 52vh;
+  border: 0;
+  padding: 12px 14px;
+  font-size: 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  outline: none;
+  resize: vertical;
+}
+.modal-actions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:flex-end;
+  padding: 12px 14px;
+  border-top: 1px solid #e6ecef;
+}
+.file-btn{
+  border: 1px solid #d7dde2;
+  background: #fff;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-weight: 650;
+  cursor: pointer;
+}
+.modal-help{
+  padding: 0 14px 14px;
+  color: var(--sub);
+  font-size: 12px;
+}
   </style>
 </head>
 
@@ -689,55 +759,130 @@
       .trim();
   }
 
-  function exportAll(){
-    // Clone and normalize all tile text before export so it pastes cleanly anywhere
-    const cleanBoards = JSON.parse(JSON.stringify(state.boards));
-    Object.values(cleanBoards).forEach(board => {
-      board.tiles = board.tiles.map(t => normalizeText(t));
-    });
+  // ===== Modal helpers =====
+const $modalBackdrop = document.getElementById("modalBackdrop");
+const $modalTitle = document.getElementById("modalTitle");
+const $modalTextarea = document.getElementById("modalTextarea");
+const $modalClose = document.getElementById("modalClose");
+const $modalCopyBtn = document.getElementById("modalCopyBtn");
+const $modalPrimaryBtn = document.getElementById("modalPrimaryBtn");
+const $modalHelp = document.getElementById("modalHelp");
+const $modalFileInput = document.getElementById("modalFileInput");
 
-    const payload = {
-      version: 3,
-      exportedAt: Date.now(),
-      boards: cleanBoards
-    };
+let modalMode = "export"; // "export" | "import"
 
-    const txt = JSON.stringify(payload);
+function openModal(mode, initialText=""){
+  modalMode = mode;
+  $modalTitle.textContent = (mode === "export") ? "Export" : "Import";
+  $modalTextarea.value = initialText;
+  $modalTextarea.readOnly = (mode === "export");
 
-    if(navigator.clipboard?.writeText){
-      navigator.clipboard.writeText(txt).then(() => {
-        alert("Export copied to clipboard.");
-      }).catch(() => {
-        prompt("Copy this export text:", txt);
-      });
-    } else {
-      prompt("Copy this export text:", txt);
-    }
+  $modalPrimaryBtn.textContent = (mode === "export") ? "Done" : "Import";
+  $modalCopyBtn.hidden = (mode !== "export");
+  $modalFileInput.value = ""; // reset
+
+  $modalHelp.textContent =
+    (mode === "export")
+      ? "Copy this text into Notes/email/message. Use Import on another device to restore."
+      : "Paste the full export text here OR use “Import file”. This will overwrite the current data on this device.";
+
+  $modalBackdrop.hidden = false;
+  setTimeout(() => $modalTextarea.focus(), 50);
+}
+
+function closeModal(){
+  $modalBackdrop.hidden = true;
+}
+
+$modalClose.addEventListener("click", closeModal);
+$modalBackdrop.addEventListener("click", (e) => {
+  if(e.target === $modalBackdrop) closeModal();
+});
+
+$modalCopyBtn.addEventListener("click", async () => {
+  try{
+    await navigator.clipboard.writeText($modalTextarea.value);
+    showToast("Copied ✅");
+  } catch {
+    // fallback: select text
+    $modalTextarea.focus();
+    $modalTextarea.select();
+    showToast("Select + Copy");
+  }
+});
+
+$modalFileInput.addEventListener("change", async () => {
+  const file = $modalFileInput.files?.[0];
+  if(!file) return;
+  const text = await file.text();
+  $modalTextarea.value = text;
+});
+
+// ===== Smart quote handling (keeps import/export painless) =====
+function normalizeText(text){
+  return String(text || "")
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/\u2026/g, "...")
+    .replace(/\u00A0/g, " ")
+    .trim();
+}
+
+function sanitizeJSON(text){
+  return normalizeText(text); // same rules for now
+}
+
+// ===== NEW Export / Import (no prompt, no truncation) =====
+function exportAll(){
+  const cleanBoards = JSON.parse(JSON.stringify(state.boards));
+  Object.values(cleanBoards).forEach(board => {
+    board.tiles = board.tiles.map(t => normalizeText(t));
+  });
+
+  const payload = {
+    version: 3,
+    exportedAt: Date.now(),
+    boards: cleanBoards
+  };
+
+  const txt = JSON.stringify(payload);
+  openModal("export", txt);
+}
+
+function importAll(){
+  openModal("import", "");
+}
+
+$modalPrimaryBtn.addEventListener("click", () => {
+  if(modalMode === "export"){
+    closeModal();
+    return;
   }
 
-  function importAll(){
-    const txt = prompt("Paste export text to import (this overwrites current data):");
-    if(!txt) return;
-
-    try{
-      const cleaned = sanitizeJSON(txt);
-      const payload = JSON.parse(cleaned);
-
-      if(!payload.boards) throw new Error("Missing boards");
-
-      state = { boards: payload.boards };
-      normalizeState(state);
-      saveState();
-      alert("Import complete!");
-      render();
-
-    } catch(e){
-      console.error("Import failed:", e);
-      alert("Import failed. Please paste the full export text and try again.");
-    }
+  const txt = $modalTextarea.value;
+  if(!txt.trim()){
+    alert("Paste an export first (or use Import file).");
+    return;
   }
 
-  // ===== Actions =====
+  try{
+    const cleaned = sanitizeJSON(txt);
+    const payload = JSON.parse(cleaned);
+    if(!payload.boards) throw new Error("Missing boards");
+
+    state = { boards: payload.boards };
+    normalizeState(state);
+    saveState();
+    render();
+    closeModal();
+    alert("Import complete!");
+  } catch(e){
+    console.error("Import failed:", e);
+    alert("Import failed. Make sure you pasted the FULL export text.");
+  }
+});
+
+    // ===== Actions =====
   function resetMonth(){
     const m = MONTHS[Number($month.value)];
     const ok = confirm(`Reset ${m}? This clears checkmarks & celebrations (keeps text).`);
@@ -771,5 +916,28 @@
   }
 })();
 </script>
+  <!-- Import/Export Modal -->
+<div id="modalBackdrop" class="modal-backdrop" hidden>
+  <div class="modal">
+    <div class="modal-head">
+      <div id="modalTitle" class="modal-title">Export</div>
+      <button id="modalClose" class="modal-close" aria-label="Close">✕</button>
+    </div>
+
+    <textarea id="modalTextarea" class="modal-textarea" spellcheck="false"></textarea>
+
+    <div class="modal-actions">
+      <button id="modalCopyBtn">Copy</button>
+      <label class="file-btn">
+        Import file
+        <input id="modalFileInput" type="file" accept=".json,.txt,application/json,text/plain" hidden>
+      </label>
+      <button id="modalPrimaryBtn" class="primary">Done</button>
+    </div>
+
+    <div class="modal-help" id="modalHelp"></div>
+  </div>
+</div>
+
 </body>
 </html>

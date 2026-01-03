@@ -799,7 +799,7 @@ function closeModal(){
   $modalBackdrop.hidden = true;
 }
 
-$modalClose.addEventListener("click", closeModal);
+$modalClose.addEventListener("click", closeModal());
 $modalBackdrop.addEventListener("click", (e) => {
   if(e.target === $modalBackdrop) closeModal();
 });

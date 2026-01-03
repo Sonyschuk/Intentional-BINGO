@@ -1,4 +1,4 @@
-const CACHE = "intentional-bingo-v3";
+const CACHE = "intentional-bingo-v4";
 const ASSETS = [
   "./",
   "./index.html",

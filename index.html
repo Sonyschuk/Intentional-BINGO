@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <!-- Mobile-first scaling (important on Android) -->
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Intentional Bingo</title>
 
@@ -20,9 +19,7 @@
       --shadow: 0 8px 24px rgba(0,0,0,.08);
       --radius: 18px;
     }
-
     *{ box-sizing: border-box; }
-
     body{
       margin:0;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
@@ -31,28 +28,23 @@
       -webkit-text-size-adjust: 100%;
       text-size-adjust: 100%;
     }
-
     header{
       padding:16px 12px 8px;
-      max-width: 100%;
       width: 100%;
       margin: 0 auto;
     }
-
     h1{
       margin:0 0 6px;
       font-size: 22px;
       font-weight: 750;
       letter-spacing: .2px;
     }
-
     .subtitle{
       color:var(--sub);
       font-size: 13px;
       margin-bottom: 12px;
       line-height: 1.35;
     }
-
     .bar{
       display:flex;
       gap:10px;
@@ -61,14 +53,12 @@
       justify-content:space-between;
       margin: 10px 0 14px;
     }
-
     .bar-left, .bar-right{
       display:flex;
       gap:10px;
       flex-wrap:wrap;
       align-items:center;
     }
-
     select, button{
       border: 1px solid #d7dde2;
       background: var(--card);
@@ -79,36 +69,27 @@
       box-shadow: 0 1px 0 rgba(0,0,0,.02);
       max-width: 100%;
     }
-
     button{
       cursor:pointer;
       font-weight: 650;
       touch-action: manipulation;
     }
-
     button.primary{
       background: var(--teal);
       color: white;
       border-color: transparent;
     }
-
     button.warn{
       background:#fff;
       border-color:#f0c6c6;
       color:#9b1c1c;
     }
-
-    button:active{
-      transform: translateY(1px);
-    }
-
+    button:active{ transform: translateY(1px); }
     .wrap{
-      max-width: 100%;
       width: 100%;
       margin: 0 auto;
       padding: 0 12px 24px;
     }
-
     .panel{
       background: var(--card);
       border-radius: var(--radius);
@@ -125,7 +106,6 @@
       margin-top: 10px;
       width: 100%;
     }
-
     .cell{
       background: #f9fbfc;
       border: 1px solid #e2e7eb;
@@ -144,14 +124,11 @@
       overflow-wrap: anywhere;
       word-break: break-word;
     }
-
     .cell:active{ transform: scale(.99); }
-
     .cell.done{
       background: rgba(15,92,102,.10);
       border-color: rgba(15,92,102,.35);
     }
-
     .cell .check{
       position:absolute;
       top:8px;
@@ -160,9 +137,7 @@
       opacity: 0;
       transition: opacity .12s ease;
     }
-
     .cell.done .check{ opacity: 1; }
-
     .cell.center{
       background: var(--muted);
       border-color: #d5dde3;
@@ -180,7 +155,6 @@
       color: var(--sub);
       font-size: 13px;
     }
-
     .pill{
       padding: 7px 10px;
       border-radius: 999px;
@@ -190,53 +164,41 @@
       font-weight: 650;
       font-size: 12px;
     }
-
     .divider{ height:1px; background:#e8edf1; margin: 14px 0; }
-
     .row{
       display:grid;
       grid-template-columns: 1fr;
       gap:10px;
     }
-
     @media (min-width: 780px){
       .row{ grid-template-columns: 1fr 1fr; }
     }
-
     .small{
       font-size: 12px;
       color: var(--sub);
       margin-top: 6px;
       line-height: 1.35;
     }
-
     .edit-indicator{
       font-weight: 800;
       color: var(--teal);
     }
 
-    /* Mobile-specific polish */
     @media (max-width: 480px){
       h1{ font-size: 20px; }
       .subtitle{ font-size: 12px; }
-
       .grid{ gap: 8px; }
-
       .cell{
         min-height: 58px;
         font-size: 12.5px;
         padding: 7px;
         border-radius: 14px;
       }
-
       button, select{
         padding: 9px 10px;
         font-size: 13px;
       }
-
-      .panel{
-        padding: 12px;
-      }
+      .panel{ padding: 12px; }
     }
 
     /* ===== Celebrations (toast + confetti) ===== */
@@ -263,7 +225,6 @@
       opacity: 1;
       transform: translateX(-50%) translateY(-6px);
     }
-
     .confetti-layer{
       position: fixed;
       inset: 0;
@@ -271,7 +232,6 @@
       pointer-events: none;
       z-index: 9998;
     }
-
     .confetti{
       position: absolute;
       width: 10px;
@@ -282,86 +242,83 @@
       will-change: transform;
       filter: drop-shadow(0 2px 1px rgba(0,0,0,.12));
     }
-
     @keyframes fall{
       0%   { transform: translate3d(0, -20px, 0) rotate(0deg);   opacity: 1; }
       100% { transform: translate3d(0, 110vh, 0) rotate(720deg); opacity: 1; }
     }
-    /* ===== Import/Export modal (replaces prompt to avoid truncation) ===== */
-.modal-backdrop{
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.35);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding: 14px;
-  z-index: 10000;
-}
-.modal{
-  width: min(920px, 100%);
-  background: #fff;
-  border-radius: 18px;
-  box-shadow: 0 18px 60px rgba(0,0,0,.25);
-  overflow:hidden;
-  display:flex;
-  flex-direction:column;
-}
-.modal-head{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding: 12px 14px;
-  border-bottom: 1px solid #e6ecef;
-}
-.modal-title{
-  font-weight: 800;
-}
-.modal-close{
-  border: 1px solid #d7dde2;
-  background: #fff;
-  border-radius: 12px;
-  padding: 8px 10px;
-  font-weight: 800;
-}
-.modal-textarea{
-  width: 100%;
-  min-height: 52vh;
-  border: 0;
-  padding: 12px 14px;
-  font-size: 12px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-  outline: none;
-  resize: vertical;
-}
-.modal-actions{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-  align-items:center;
-  justify-content:flex-end;
-  padding: 12px 14px;
-  border-top: 1px solid #e6ecef;
-}
-.file-btn{
-  border: 1px solid #d7dde2;
-  background: #fff;
-  border-radius: 12px;
-  padding: 10px 12px;
-  font-size: 14px;
-  font-weight: 650;
-  cursor: pointer;
-}
-.modal-help{
-  padding: 0 14px 14px;
-  color: var(--sub);
-  font-size: 12px;
-}
-    /* IMPORTANT: make the hidden attribute actually hide the modal */
-.modal-backdrop[hidden]{
-  display: none !important;
-}
 
+    /* ===== Import/Export Modal (NO prompt truncation) ===== */
+    .modal-backdrop{
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.35);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 14px;
+      z-index: 10000;
+    }
+    /* CRITICAL: hidden must win */
+    .modal-backdrop[hidden]{ display:none !important; }
+
+    .modal{
+      width: min(920px, 100%);
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 18px 60px rgba(0,0,0,.25);
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+    }
+    .modal-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding: 12px 14px;
+      border-bottom: 1px solid #e6ecef;
+    }
+    .modal-title{ font-weight: 800; }
+    .modal-close{
+      border: 1px solid #d7dde2;
+      background: #fff;
+      border-radius: 12px;
+      padding: 8px 10px;
+      font-weight: 800;
+    }
+    .modal-textarea{
+      width: 100%;
+      min-height: 52vh;
+      border: 0;
+      padding: 12px 14px;
+      font-size: 12px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      outline: none;
+      resize: vertical;
+    }
+    .modal-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:flex-end;
+      padding: 12px 14px;
+      border-top: 1px solid #e6ecef;
+    }
+    .file-btn{
+      border: 1px solid #d7dde2;
+      background: #fff;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 14px;
+      font-weight: 650;
+      cursor: pointer;
+    }
+    .modal-help{
+      padding: 0 14px 14px;
+      color: var(--sub);
+      font-size: 12px;
+      line-height: 1.35;
+    }
   </style>
 </head>
 
@@ -402,11 +359,11 @@
     <div class="row">
       <div>
         <strong>Export / Backup</strong>
-        <div class="small">Tap <b>Export</b> to copy your boards as text. Save it in Notes, email it, or message it to yourself.</div>
+        <div class="small">Export copies a backup you can paste anywhere. Import restores it on this device.</div>
       </div>
       <div>
         <strong>Import</strong>
-        <div class="small">Tap <b>Import</b> and paste an export to restore everything (overwrites current data).</div>
+        <div class="small">Import overwrites the current data on THIS device (safe for syncing computer → phone).</div>
       </div>
     </div>
   </div>
@@ -416,18 +373,40 @@
 <div class="confetti-layer" id="confettiLayer" aria-hidden="true"></div>
 <div class="toast" id="toast" aria-live="polite"></div>
 
+<!-- Import/Export Modal -->
+<div id="modalBackdrop" class="modal-backdrop" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-label="Import Export">
+    <div class="modal-head">
+      <div id="modalTitle" class="modal-title">Export</div>
+      <button id="modalClose" class="modal-close" aria-label="Close">✕</button>
+    </div>
+
+    <textarea id="modalTextarea" class="modal-textarea" spellcheck="false"></textarea>
+
+    <div class="modal-actions">
+      <button id="modalCopyBtn">Copy</button>
+
+      <label class="file-btn">
+        Import file
+        <input id="modalFileInput" type="file" accept=".json,.txt,application/json,text/plain" hidden>
+      </label>
+
+      <button id="modalPrimaryBtn" class="primary">Done</button>
+    </div>
+
+    <div class="modal-help" id="modalHelp"></div>
+  </div>
+</div>
+
 <script>
 (() => {
-  const MONTHS = [
-    "January","February","March","April","May","June",
-    "July","August","September","October","November","December"
-  ];
+  const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
-  // Current storage key for this version
-  const LS_KEY = "intentional_bingo_v3";
+  // Storage key for THIS build (safe, keeps old installs migratable)
+  const LS_KEY = "intentional_bingo_v4_state";
 
-  // ===== Generic default board (shareable template) =====
-  const defaultBoard = () => {
+  // ===== Generic default board =====
+  function defaultBoard(){
     const tiles = Array(25).fill("");
 
     // Row 1 — Health & Energy
@@ -471,9 +450,9 @@
       celebrated: { lines: {}, full: false },
       updatedAt: Date.now()
     };
-  };
+  }
 
-  // Elements
+  // ===== Elements =====
   const $month = document.getElementById("monthSelect");
   const $grid = document.getElementById("grid");
   const $editBtn = document.getElementById("editBtn");
@@ -485,64 +464,26 @@
   const $toast = document.getElementById("toast");
   const $confettiLayer = document.getElementById("confettiLayer");
 
+  // Modal elements
+  const $modalBackdrop = document.getElementById("modalBackdrop");
+  const $modalTitle = document.getElementById("modalTitle");
+  const $modalTextarea = document.getElementById("modalTextarea");
+  const $modalClose = document.getElementById("modalClose");
+  const $modalCopyBtn = document.getElementById("modalCopyBtn");
+  const $modalPrimaryBtn = document.getElementById("modalPrimaryBtn");
+  const $modalHelp = document.getElementById("modalHelp");
+  const $modalFileInput = document.getElementById("modalFileInput");
+
   let state = loadState();
   let editMode = false;
+  let modalMode = "export"; // "export" | "import"
 
-  // ===== Persistence (with migration from v1/v2) =====
-  function loadState(){
-    // Try v3 first
-    const rawV3 = localStorage.getItem(LS_KEY);
-    if(rawV3){
-      try{
-        const parsed = JSON.parse(rawV3);
-        normalizeState(parsed);
-        return parsed;
-      } catch(e){}
-    }
-
-    // Try v2 (your celebrations version)
-    const rawV2 = localStorage.getItem("intentional_bingo_v2");
-    if(rawV2){
-      try{
-        const parsedV2 = JSON.parse(rawV2);
-        normalizeState(parsedV2);
-        localStorage.setItem(LS_KEY, JSON.stringify(parsedV2));
-        return parsedV2;
-      } catch(e){}
-    }
-
-    // Try v1 (your earlier version)
-    const rawV1 = localStorage.getItem("intentional_bingo_v1");
-    if(rawV1){
-      try{
-        const parsedV1 = JSON.parse(rawV1);
-        const migrated = { boards: {} };
-        MONTHS.forEach((m, i) => {
-          const fallback = defaultBoard();
-          const b = parsedV1.boards?.[i] ? parsedV1.boards[i] : fallback;
-          migrated.boards[i] = {
-            tiles: Array.isArray(b.tiles) ? b.tiles : fallback.tiles,
-            done: Array.isArray(b.done) ? b.done : Array(25).fill(false),
-            celebrated: { lines: {}, full: false },
-            updatedAt: b.updatedAt || Date.now()
-          };
-        });
-        normalizeState(migrated);
-        localStorage.setItem(LS_KEY, JSON.stringify(migrated));
-        return migrated;
-      } catch(e){}
-    }
-
-    // Fresh install
-    const fresh = { boards: {} };
-    MONTHS.forEach((m, i) => fresh.boards[i] = defaultBoard());
-    localStorage.setItem(LS_KEY, JSON.stringify(fresh));
-    return fresh;
-  }
-
+  // ===== State helpers =====
   function normalizeState(s){
+    if(!s || typeof s !== "object") s = { boards: {} };
     if(!s.boards) s.boards = {};
-    MONTHS.forEach((m, i) => {
+
+    MONTHS.forEach((_, i) => {
       if(!s.boards[i]) s.boards[i] = defaultBoard();
       const b = s.boards[i];
 
@@ -555,10 +496,41 @@
 
       if(!b.updatedAt) b.updatedAt = Date.now();
     });
+
+    return s;
   }
 
   function saveState(){
     localStorage.setItem(LS_KEY, JSON.stringify(state));
+  }
+
+  function loadState(){
+    // Try current key
+    const raw = localStorage.getItem(LS_KEY);
+    if(raw){
+      try{
+        return normalizeState(JSON.parse(raw));
+      } catch(e){}
+    }
+
+    // Migrate older keys if found
+    const candidates = ["intentional_bingo_v3","intentional_bingo_v2","intentional_bingo_v1","intentional_bingo_v3_state","intentional_bingo_v2_state"];
+    for(const key of candidates){
+      const r = localStorage.getItem(key);
+      if(!r) continue;
+      try{
+        const parsed = JSON.parse(r);
+        const normalized = normalizeState(parsed);
+        localStorage.setItem(LS_KEY, JSON.stringify(normalized));
+        return normalized;
+      } catch(e){}
+    }
+
+    // Fresh install
+    const fresh = { boards: {} };
+    MONTHS.forEach((_, i) => fresh.boards[i] = defaultBoard());
+    localStorage.setItem(LS_KEY, JSON.stringify(fresh));
+    return fresh;
   }
 
   // ===== UI =====
@@ -613,7 +585,7 @@
           const current = board.tiles[i] || "";
           const next = prompt("Edit square text:", current);
           if(next === null) return;
-          board.tiles[i] = (next || "").trim();
+          board.tiles[i] = String(next || "").trim();
           board.updatedAt = Date.now();
           saveState();
           render();
@@ -624,9 +596,7 @@
         board.updatedAt = Date.now();
         saveState();
 
-        // Celebrate if this click created a new bingo line or completed the card
         checkCelebrations();
-
         render();
       });
 
@@ -635,44 +605,33 @@
 
     const doneCount = board.done.filter((v, i) => v && i !== 12).length;
     $progress.textContent = `${doneCount}/24 complete`;
-    const dt = new Date(board.updatedAt);
-    $status.textContent = `Saved on this device • Last updated ${dt.toLocaleString()}`;
+    $status.textContent = `Saved on this device • Last updated ${new Date(board.updatedAt).toLocaleString()}`;
   }
 
-  // ===== Bingo detection + celebrations =====
+  // ===== Celebrations =====
   const LINES = (() => {
     const lines = [];
-    // rows
-    for(let r=0;r<5;r++){
-      lines.push([...Array(5)].map((_,c)=> r*5 + c));
-    }
-    // cols
-    for(let c=0;c<5;c++){
-      lines.push([...Array(5)].map((_,r)=> r*5 + c));
-    }
-    // diagonals
+    for(let r=0;r<5;r++) lines.push([...Array(5)].map((_,c)=> r*5 + c));
+    for(let c=0;c<5;c++) lines.push([...Array(5)].map((_,r)=> r*5 + c));
     lines.push([0,6,12,18,24]);
     lines.push([4,8,12,16,20]);
     return lines;
   })();
 
   function isIndexComplete(board, idx){
-    // center is a "free square" for bingo logic
-    if(idx === 12) return true;
+    if(idx === 12) return true; // free center
     return !!board.done[idx];
   }
 
   function completedLines(board){
     const completed = [];
     LINES.forEach((line, i) => {
-      const ok = line.every(idx => isIndexComplete(board, idx));
-      if(ok) completed.push(i);
+      if(line.every(idx => isIndexComplete(board, idx))) completed.push(i);
     });
     return completed;
   }
 
   function isFullCard(board){
-    // full card = all non-center tiles done
     for(let i=0;i<25;i++){
       if(i === 12) continue;
       if(!board.done[i]) return false;
@@ -680,35 +639,6 @@
     return true;
   }
 
-  function checkCelebrations(){
-    const board = getBoard();
-
-    // 1) new line celebrations
-    const nowCompleted = completedLines(board);
-    const newly = nowCompleted.filter(lineId => !board.celebrated.lines[String(lineId)]);
-    if(newly.length){
-      newly.forEach(lineId => board.celebrated.lines[String(lineId)] = true);
-      board.updatedAt = Date.now();
-      saveState();
-
-      const msg = newly.length === 1 ? "BINGO! 🎉" : `BINGO x${newly.length}! 🎉`;
-      showToast(msg);
-      burstConfetti(newly.length >= 2 ? 90 : 60, newly.length >= 2 ? 1800 : 1400);
-    }
-
-    // 2) full card celebration (once)
-    const full = isFullCard(board);
-    if(full && !board.celebrated.full){
-      board.celebrated.full = true;
-      board.updatedAt = Date.now();
-      saveState();
-
-      showToast("FULL CARD! You did it ✨🎉");
-      burstConfetti(140, 2400);
-    }
-  }
-
-  // Toast
   let toastTimer = null;
   function showToast(text){
     $toast.textContent = text;
@@ -717,177 +647,51 @@
     toastTimer = setTimeout(() => $toast.classList.remove("show"), 1800);
   }
 
-  // Confetti
   function burstConfetti(count=60, durationMs=1400){
     $confettiLayer.innerHTML = "";
     const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
-
     const palette = ["#0f5c66","#2f7e88","#f0c6c6","#f4d06f","#9ad0ec","#c7f9cc","#ffffff","#334049"];
 
     for(let i=0;i<count;i++){
       const el = document.createElement("div");
       el.className = "confetti";
-      el.style.left = Math.random() * vw + "px";
+      el.style.left = (Math.random()*vw) + "px";
       el.style.top = (-20 - Math.random()*60) + "px";
       el.style.background = palette[Math.floor(Math.random()*palette.length)];
       el.style.width = (7 + Math.random()*8) + "px";
       el.style.height = (10 + Math.random()*14) + "px";
       el.style.opacity = (0.75 + Math.random()*0.25).toFixed(2);
-
-      const fallMs = 900 + Math.random()*900;
-      el.style.animationDuration = fallMs + "ms";
+      el.style.animationDuration = (900 + Math.random()*900) + "ms";
       el.style.animationDelay = (Math.random()*120) + "ms";
-
       $confettiLayer.appendChild(el);
     }
-
     setTimeout(() => { $confettiLayer.innerHTML = ""; }, durationMs);
   }
 
-  // ===== Export / Import (fixed + painless) =====
-  function normalizeText(text){
-    return String(text || "")
-      .replace(/[\u2018\u2019]/g, "'")   // smart single quotes
-      .replace(/[\u201C\u201D]/g, '"')   // smart double quotes
-      .replace(/\u2026/g, "...")         // ellipsis
-      .replace(/\u00A0/g, " ")           // non-breaking spaces
-      .trim();
+  function checkCelebrations(){
+    const board = getBoard();
+
+    const nowCompleted = completedLines(board);
+    const newly = nowCompleted.filter(lineId => !board.celebrated.lines[String(lineId)]);
+    if(newly.length){
+      newly.forEach(lineId => board.celebrated.lines[String(lineId)] = true);
+      board.updatedAt = Date.now();
+      saveState();
+      showToast(newly.length === 1 ? "BINGO! 🎉" : `BINGO x${newly.length}! 🎉`);
+      burstConfetti(newly.length >= 2 ? 90 : 60, newly.length >= 2 ? 1800 : 1400);
+    }
+
+    const full = isFullCard(board);
+    if(full && !board.celebrated.full){
+      board.celebrated.full = true;
+      board.updatedAt = Date.now();
+      saveState();
+      showToast("FULL CARD! You did it ✨🎉");
+      burstConfetti(140, 2400);
+    }
   }
 
-  function sanitizeJSON(text){
-    // Backup sanitizer for copy/paste from any messaging app
-    return String(text || "")
-      .replace(/[\u2018\u2019]/g, "'")
-      .replace(/[\u201C\u201D]/g, '"')
-      .replace(/\u2026/g, "...")
-      .replace(/\u00A0/g, " ")
-      .trim();
-  }
-
-  // ===== Modal helpers =====
-const $modalBackdrop = document.getElementById("modalBackdrop");
-const $modalTitle = document.getElementById("modalTitle");
-const $modalTextarea = document.getElementById("modalTextarea");
-const $modalClose = document.getElementById("modalClose");
-const $modalCopyBtn = document.getElementById("modalCopyBtn");
-const $modalPrimaryBtn = document.getElementById("modalPrimaryBtn");
-const $modalHelp = document.getElementById("modalHelp");
-const $modalFileInput = document.getElementById("modalFileInput");
-
-let modalMode = "export"; // "export" | "import"
-
-function openModal(mode, initialText=""){
-  modalMode = mode;
-  $modalTitle.textContent = (mode === "export") ? "Export" : "Import";
-  $modalTextarea.value = initialText;
-  $modalTextarea.readOnly = (mode === "export");
-
-  $modalPrimaryBtn.textContent = (mode === "export") ? "Done" : "Import";
-  $modalCopyBtn.hidden = (mode !== "export");
-  $modalFileInput.value = ""; // reset
-
-  $modalHelp.textContent =
-    (mode === "export")
-      ? "Copy this text into Notes/email/message. Use Import on another device to restore."
-      : "Paste the full export text here OR use “Import file”. This will overwrite the current data on this device.";
-
-  $modalBackdrop.hidden = false;
-  setTimeout(() => $modalTextarea.focus(), 50);
-}
-
-function closeModal(){
-  $modalBackdrop.hidden = true;
-}
-
-$modalClose.addEventListener("click", closeModal());
-$modalBackdrop.addEventListener("click", (e) => {
-  if(e.target === $modalBackdrop) closeModal();
-});
-
-$modalCopyBtn.addEventListener("click", async () => {
-  try{
-    await navigator.clipboard.writeText($modalTextarea.value);
-    showToast("Copied ✅");
-  } catch {
-    // fallback: select text
-    $modalTextarea.focus();
-    $modalTextarea.select();
-    showToast("Select + Copy");
-  }
-});
-
-$modalFileInput.addEventListener("change", async () => {
-  const file = $modalFileInput.files?.[0];
-  if(!file) return;
-  const text = await file.text();
-  $modalTextarea.value = text;
-});
-
-// ===== Smart quote handling (keeps import/export painless) =====
-function normalizeText(text){
-  return String(text || "")
-    .replace(/[\u2018\u2019]/g, "'")
-    .replace(/[\u201C\u201D]/g, '"')
-    .replace(/\u2026/g, "...")
-    .replace(/\u00A0/g, " ")
-    .trim();
-}
-
-function sanitizeJSON(text){
-  return normalizeText(text); // same rules for now
-}
-
-// ===== NEW Export / Import (no prompt, no truncation) =====
-function exportAll(){
-  const cleanBoards = JSON.parse(JSON.stringify(state.boards));
-  Object.values(cleanBoards).forEach(board => {
-    board.tiles = board.tiles.map(t => normalizeText(t));
-  });
-
-  const payload = {
-    version: 3,
-    exportedAt: Date.now(),
-    boards: cleanBoards
-  };
-
-  const txt = JSON.stringify(payload);
-  openModal("export", txt);
-}
-
-function importAll(){
-  openModal("import", "");
-}
-
-$modalPrimaryBtn.addEventListener("click", () => {
-  if(modalMode === "export"){
-    closeModal();
-    return;
-  }
-
-  const txt = $modalTextarea.value;
-  if(!txt.trim()){
-    alert("Paste an export first (or use Import file).");
-    return;
-  }
-
-  try{
-    const cleaned = sanitizeJSON(txt);
-    const payload = JSON.parse(cleaned);
-    if(!payload.boards) throw new Error("Missing boards");
-
-    state = { boards: payload.boards };
-    normalizeState(state);
-    saveState();
-    render();
-    closeModal();
-    alert("Import complete!");
-  } catch(e){
-    console.error("Import failed:", e);
-    alert("Import failed. Make sure you pasted the FULL export text.");
-  }
-});
-
-    // ===== Actions =====
+  // ===== Reset Month =====
   function resetMonth(){
     const m = MONTHS[Number($month.value)];
     const ok = confirm(`Reset ${m}? This clears checkmarks & celebrations (keeps text).`);
@@ -900,20 +704,125 @@ $modalPrimaryBtn.addEventListener("click", () => {
     render();
   }
 
-  // ===== Events =====
-  $month.addEventListener("change", () => {
-    render();
-  });
+  // ===== Export / Import (no truncation) =====
+  function normalizeText(text){
+    return String(text || "")
+      .replace(/[\u2018\u2019]/g, "'")
+      .replace(/[\u201C\u201D]/g, '"')
+      .replace(/\u2026/g, "...")
+      .replace(/\u00A0/g, " ")
+      .trim();
+  }
 
+  function openModal(mode, initialText){
+    modalMode = mode;
+
+    $modalTitle.textContent = (mode === "export") ? "Export" : "Import";
+    $modalTextarea.value = initialText || "";
+    $modalTextarea.readOnly = (mode === "export");
+
+    $modalPrimaryBtn.textContent = (mode === "export") ? "Done" : "Import";
+    $modalCopyBtn.hidden = (mode !== "export");
+
+    $modalHelp.textContent =
+      (mode === "export")
+        ? "Copy this text into Notes/email/message. Import it on another device to restore."
+        : "Paste the FULL export text here (or choose Import file). This overwrites data on THIS device.";
+
+    $modalBackdrop.hidden = false;
+    setTimeout(() => $modalTextarea.focus(), 50);
+  }
+
+  function closeModal(){
+    $modalBackdrop.hidden = true;
+    $modalTextarea.value = "";
+    $modalFileInput.value = "";
+  }
+
+  async function handleCopy(){
+    try{
+      await navigator.clipboard.writeText($modalTextarea.value);
+      showToast("Copied ✅");
+    } catch {
+      $modalTextarea.focus();
+      $modalTextarea.select();
+      showToast("Select + Copy");
+    }
+  }
+
+  function exportAll(){
+    // Clone and normalize tiles so export is safe anywhere
+    const cleanBoards = JSON.parse(JSON.stringify(state.boards));
+    Object.values(cleanBoards).forEach(board => {
+      board.tiles = (board.tiles || []).map(t => normalizeText(t));
+    });
+
+    const payload = {
+      version: 4,
+      exportedAt: Date.now(),
+      boards: cleanBoards
+    };
+
+    openModal("export", JSON.stringify(payload));
+  }
+
+  function importAll(){
+    openModal("import", "");
+  }
+
+  function doImportFromText(txt){
+    const cleaned = normalizeText(txt);
+    const payload = JSON.parse(cleaned);
+
+    if(!payload || !payload.boards) throw new Error("Missing boards");
+    state = normalizeState({ boards: payload.boards });
+    saveState();
+    render();
+  }
+
+  // ===== Events =====
+  $month.addEventListener("change", render);
   $editBtn.addEventListener("click", () => setEditMode(!editMode));
   $resetBtn.addEventListener("click", resetMonth);
   $exportBtn.addEventListener("click", exportAll);
   $importBtn.addEventListener("click", importAll);
 
-  // Init
+  $modalClose.addEventListener("click", closeModal);
+  $modalBackdrop.addEventListener("click", (e) => { if(e.target === $modalBackdrop) closeModal(); });
+  $modalCopyBtn.addEventListener("click", handleCopy);
+
+  $modalFileInput.addEventListener("change", async () => {
+    const file = $modalFileInput.files && $modalFileInput.files[0];
+    if(!file) return;
+    const text = await file.text();
+    $modalTextarea.value = text;
+  });
+
+  $modalPrimaryBtn.addEventListener("click", () => {
+    if(modalMode === "export"){
+      closeModal();
+      return;
+    }
+    const txt = $modalTextarea.value;
+    if(!txt.trim()){
+      alert("Paste an export first (or use Import file).");
+      return;
+    }
+    try{
+      doImportFromText(txt);
+      closeModal();
+      alert("Import complete!");
+    } catch(e){
+      console.error("Import failed:", e);
+      alert("Import failed. Make sure you pasted the FULL export text.");
+    }
+  });
+
+  // ===== Init =====
   initMonthSelect();
   setEditMode(false);
   render();
+  closeModal(); // guarantees modal never starts open
 
   // PWA service worker
   if ("serviceWorker" in navigator) {
@@ -921,28 +830,5 @@ $modalPrimaryBtn.addEventListener("click", () => {
   }
 })();
 </script>
-  <!-- Import/Export Modal -->
-<div id="modalBackdrop" class="modal-backdrop" hidden>
-  <div class="modal">
-    <div class="modal-head">
-      <div id="modalTitle" class="modal-title">Export</div>
-      <button id="modalClose" class="modal-close" aria-label="Close">✕</button>
-    </div>
-
-    <textarea id="modalTextarea" class="modal-textarea" spellcheck="false"></textarea>
-
-    <div class="modal-actions">
-      <button id="modalCopyBtn">Copy</button>
-      <label class="file-btn">
-        Import file
-        <input id="modalFileInput" type="file" accept=".json,.txt,application/json,text/plain" hidden>
-      </label>
-      <button id="modalPrimaryBtn" class="primary">Done</button>
-    </div>
-
-    <div class="modal-help" id="modalHelp"></div>
-  </div>
-</div>
-
 </body>
 </html>

@@ -1,20 +1,13 @@
 {
-  "name": "Intentional Bingo",
-  "short_name": "Bingo",
-  "start_url": ".",
+  "name": "Goals Bingo",
+  "short_name": "Goals Bingo",
+  "start_url": "/Goals-BINGO/",
+  "scope": "/Goals-BINGO/",
   "display": "standalone",
   "background_color": "#f4f6f8",
   "theme_color": "#0f5c66",
   "icons": [
-    {
-      "src": "icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
   ]
 }

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>Intentional Bingo</title>
+  <title>Goals Bingo</title>
 
   <meta name="theme-color" content="#0f5c66" />
   <link rel="manifest" href="manifest.json" />
@@ -85,6 +85,7 @@
       color:#9b1c1c;
     }
     button:active{ transform: translateY(1px); }
+
     .wrap{
       width: 100%;
       margin: 0 auto;
@@ -110,8 +111,8 @@
       background: #f9fbfc;
       border: 1px solid #e2e7eb;
       border-radius: 16px;
-      min-height: 64px;
-      padding: 8px;
+      min-height: 72px;
+      padding: 8px 8px 10px;
       display:flex;
       align-items:center;
       justify-content:center;
@@ -123,26 +124,48 @@
       transition: transform .06s ease, background .15s ease, border-color .15s ease;
       overflow-wrap: anywhere;
       word-break: break-word;
+      flex-direction: column;
+      gap: 6px;
     }
     .cell:active{ transform: scale(.99); }
     .cell.done{
       background: rgba(15,92,102,.10);
       border-color: rgba(15,92,102,.35);
     }
-    .cell .check{
-      position:absolute;
-      top:8px;
-      right:10px;
-      font-size: 16px;
-      opacity: 0;
-      transition: opacity .12s ease;
-    }
-    .cell.done .check{ opacity: 1; }
     .cell.center{
       background: var(--muted);
       border-color: #d5dde3;
       font-weight: 800;
       letter-spacing: .6px;
+    }
+
+    .cellText{
+      width:100%;
+    }
+
+    /* Dots row */
+    .dots{
+      display:flex;
+      gap:6px;
+      align-items:center;
+      justify-content:center;
+      width:100%;
+    }
+    .dot{
+      width:8px;
+      height:8px;
+      border-radius:999px;
+      border:1px solid #c9d3d9;
+      background: transparent;
+      opacity: 1;
+    }
+    .dot.filled{
+      background: var(--teal);
+      border-color: var(--teal);
+    }
+    /* dots beyond target are "inactive" (dimmed) */
+    .dot.inactive{
+      opacity: .25;
     }
 
     .meta{
@@ -189,16 +212,18 @@
       .subtitle{ font-size: 12px; }
       .grid{ gap: 8px; }
       .cell{
-        min-height: 58px;
+        min-height: 66px;
         font-size: 12.5px;
-        padding: 7px;
+        padding: 7px 7px 9px;
         border-radius: 14px;
+        gap: 5px;
       }
       button, select{
         padding: 9px 10px;
         font-size: 13px;
       }
       .panel{ padding: 12px; }
+      .dot{ width:7px; height:7px; }
     }
 
     /* ===== Celebrations (toast + confetti) ===== */
@@ -247,7 +272,7 @@
       100% { transform: translate3d(0, 110vh, 0) rotate(720deg); opacity: 1; }
     }
 
-    /* ===== Import/Export Modal (NO prompt truncation) ===== */
+    /* ===== Import/Export Modal ===== */
     .modal-backdrop{
       position: fixed;
       inset: 0;
@@ -258,7 +283,6 @@
       padding: 14px;
       z-index: 10000;
     }
-    /* CRITICAL: hidden must win */
     .modal-backdrop[hidden]{ display:none !important; }
 
     .modal{
@@ -324,9 +348,10 @@
 
 <body>
 <header>
-  <h1>Intentional Bingo</h1>
+  <h1>Goals Bingo</h1>
   <div class="subtitle">
-    Tap tiles to mark complete. Turn on <span class="edit-indicator">Edit Mode</span> to change tiles.
+    Tap tiles to add progress. In <span class="edit-indicator">Edit Mode</span>, you can set a tile target (1–5).
+    <br><span class="small">Tip: press & hold a tile to reset its progress.</span>
   </div>
 
   <div class="bar">
@@ -358,12 +383,17 @@
 
     <div class="row">
       <div>
-        <strong>Export / Backup</strong>
-        <div class="small">Export copies a backup you can paste anywhere. Import restores it on this device.</div>
+        <strong>How progress works</strong>
+        <div class="small">
+          Each tile can require 1–5 completions. Tap to add progress dots.
+          When the required number is reached, the tile becomes complete.
+        </div>
       </div>
       <div>
-        <strong>Import</strong>
-        <div class="small">Import overwrites the current data on THIS device (safe for syncing computer → phone).</div>
+        <strong>Export / Import</strong>
+        <div class="small">
+          Export copies a backup you can paste anywhere. Import restores it on this device.
+        </div>
       </div>
     </div>
   </div>
@@ -400,10 +430,12 @@
 
 <script>
 (() => {
-  const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December","Full Year"];
 
-  // Storage key for THIS build (safe, keeps old installs migratable)
-  const LS_KEY = "intentional_bingo_v4_state";
+  // New storage key for this repo/version
+  const LS_KEY = "goals_bingo_v1_state";
+
+  const LAST_VIEW_KEY = "goals_bingo_last_view";
 
   // ===== Generic default board =====
   function defaultBoard(){
@@ -446,7 +478,8 @@
 
     return {
       tiles,
-      done: Array(25).fill(false),
+      targets: Array(25).fill(1),
+      counts: Array(25).fill(0),
       celebrated: { lines: {}, full: false },
       updatedAt: Date.now()
     };
@@ -478,25 +511,74 @@
   let editMode = false;
   let modalMode = "export"; // "export" | "import"
 
+  // ===== Text normalization (makes export/import reliable anywhere) =====
+  function normalizeText(text){
+    return String(text || "")
+      .replace(/[\u2018\u2019]/g, "'")
+      .replace(/[\u201C\u201D]/g, '"')
+      .replace(/\u2026/g, "...")
+      .replace(/\u00A0/g, " ")
+      .trim();
+  }
+
   // ===== State helpers =====
+  function clampTarget(n){
+    const x = Number(n);
+    if(!Number.isFinite(x)) return 1;
+    return Math.min(5, Math.max(1, Math.round(x)));
+  }
+
+  function normalizeBoard(b){
+    const def = defaultBoard();
+    if(!b || typeof b !== "object") b = def;
+
+    if(!Array.isArray(b.tiles) || b.tiles.length !== 25) b.tiles = def.tiles.slice();
+
+    // Backward compatibility: old versions may have done[]
+    // Convert done -> counts when needed.
+    if(!Array.isArray(b.counts) || b.counts.length !== 25){
+      b.counts = Array(25).fill(0);
+      if(Array.isArray(b.done) && b.done.length === 25){
+        for(let i=0;i<25;i++){
+          if(i === 12) continue;
+          b.counts[i] = b.done[i] ? 1 : 0;
+        }
+      }
+    }
+
+    if(!Array.isArray(b.targets) || b.targets.length !== 25){
+      b.targets = Array(25).fill(1);
+    }
+
+    // Ensure center behaves
+    b.targets[12] = 1;
+    b.counts[12] = 1; // treated as complete for line checking
+
+    // Clamp targets and counts
+    for(let i=0;i<25;i++){
+      b.targets[i] = clampTarget(b.targets[i]);
+      if(i === 12) continue;
+      b.counts[i] = Math.min(5, Math.max(0, Math.round(Number(b.counts[i]) || 0)));
+    }
+
+    if(!b.celebrated) b.celebrated = { lines: {}, full: false };
+    if(!b.celebrated.lines) b.celebrated.lines = {};
+    if(typeof b.celebrated.full !== "boolean") b.celebrated.full = false;
+
+    if(!b.updatedAt) b.updatedAt = Date.now();
+
+    // Remove old field if present (harmless if left, but keep clean)
+    delete b.done;
+
+    return b;
+  }
+
   function normalizeState(s){
     if(!s || typeof s !== "object") s = { boards: {} };
     if(!s.boards) s.boards = {};
-
     MONTHS.forEach((_, i) => {
-      if(!s.boards[i]) s.boards[i] = defaultBoard();
-      const b = s.boards[i];
-
-      if(!Array.isArray(b.tiles) || b.tiles.length !== 25) b.tiles = defaultBoard().tiles;
-      if(!Array.isArray(b.done) || b.done.length !== 25) b.done = Array(25).fill(false);
-
-      if(!b.celebrated) b.celebrated = { lines: {}, full: false };
-      if(!b.celebrated.lines) b.celebrated.lines = {};
-      if(typeof b.celebrated.full !== "boolean") b.celebrated.full = false;
-
-      if(!b.updatedAt) b.updatedAt = Date.now();
+      s.boards[i] = normalizeBoard(s.boards[i] || defaultBoard());
     });
-
     return s;
   }
 
@@ -505,7 +587,7 @@
   }
 
   function loadState(){
-    // Try current key
+    // current key
     const raw = localStorage.getItem(LS_KEY);
     if(raw){
       try{
@@ -513,39 +595,36 @@
       } catch(e){}
     }
 
-    // Migrate older keys if found
-    const candidates = ["intentional_bingo_v3","intentional_bingo_v2","intentional_bingo_v1","intentional_bingo_v3_state","intentional_bingo_v2_state"];
-    for(const key of candidates){
-      const r = localStorage.getItem(key);
-      if(!r) continue;
-      try{
-        const parsed = JSON.parse(r);
-        const normalized = normalizeState(parsed);
-        localStorage.setItem(LS_KEY, JSON.stringify(normalized));
-        return normalized;
-      } catch(e){}
-    }
-
-    // Fresh install
+    // fresh install
     const fresh = { boards: {} };
     MONTHS.forEach((_, i) => fresh.boards[i] = defaultBoard());
     localStorage.setItem(LS_KEY, JSON.stringify(fresh));
-    return fresh;
+    return normalizeState(fresh);
   }
 
   // ===== UI =====
-  function initMonthSelect(){
-    MONTHS.forEach((m, i) => {
-      const opt = document.createElement("option");
-      opt.value = String(i);
-      opt.textContent = m;
-      $month.appendChild(opt);
-    });
-    $month.value = String(new Date().getMonth());
-  }
+ function initMonthSelect(){
+  MONTHS.forEach((m, i) => {
+    const opt = document.createElement("option");
+    opt.value = String(i);
+    opt.textContent = m;
+    $month.appendChild(opt);
+  });
 
-  function getBoard(){
-    return state.boards[Number($month.value)];
+  const savedView = localStorage.getItem("goals_bingo_last_view");
+  $month.value = savedView !== null
+    ? savedView
+    : String(new Date().getMonth());
+}
+
+function getBoard(){
+  return state.boards[Number($month.value)];
+}
+
+
+  function isComplete(board, idx){
+    if(idx === 12) return true;
+    return (board.counts[idx] || 0) >= (board.targets[idx] || 1);
   }
 
   function setEditMode(on){
@@ -558,6 +637,23 @@
     render();
   }
 
+  function renderDots(board, idx){
+    const dots = document.createElement("div");
+    dots.className = "dots";
+
+    const target = clampTarget(board.targets[idx] || 1);
+    const count = Math.min(5, Math.max(0, board.counts[idx] || 0));
+
+    for(let d=1; d<=5; d++){
+      const dot = document.createElement("div");
+      dot.className = "dot";
+      if(d > target) dot.classList.add("inactive");
+      if(d <= count && d <= target) dot.classList.add("filled");
+      dots.appendChild(dot);
+    }
+    return dots;
+  }
+
   function render(){
     const board = getBoard();
     $grid.innerHTML = "";
@@ -565,50 +661,126 @@
     for(let i=0;i<25;i++){
       const cell = document.createElement("div");
       cell.className = "cell";
+
       const isCenter = (i === 12);
       if(isCenter) cell.classList.add("center");
-      if(board.done[i]) cell.classList.add("done");
-
-      const check = document.createElement("div");
-      check.className = "check";
-      check.textContent = "✓";
-      cell.appendChild(check);
+      if(isComplete(board, i)) cell.classList.add("done");
 
       const text = document.createElement("div");
+      text.className = "cellText";
       text.textContent = board.tiles[i] || "";
       cell.appendChild(text);
 
+      // dots: only show if target > 1 and not center
+      if(!isCenter && clampTarget(board.targets[i] || 1) > 1){
+        cell.appendChild(renderDots(board, i));
+      }
+
+      // Tap
       cell.addEventListener("click", () => {
         if(isCenter) return;
 
         if(editMode){
+          // 1) edit text
           const current = board.tiles[i] || "";
           const next = prompt("Edit square text:", current);
           if(next === null) return;
           board.tiles[i] = String(next || "").trim();
+
+          // 2) set target 1–5
+          const currentTarget = clampTarget(board.targets[i] || 1);
+          const targetInput = prompt("How many times to complete this square? (1–5)", String(currentTarget));
+          if(targetInput !== null){
+            board.targets[i] = clampTarget(targetInput);
+            // if target is lowered below current count, keep count but completion will reflect
+            board.counts[i] = Math.min(board.counts[i] || 0, 5);
+          }
+
           board.updatedAt = Date.now();
           saveState();
           render();
           return;
         }
 
-        board.done[i] = !board.done[i];
+        // Normal mode: increment until complete (then do nothing)
+        const target = clampTarget(board.targets[i] || 1);
+        const current = board.counts[i] || 0;
+
+        if(current >= target){
+       // next tap resets to 0
+          board.counts[i] = 0;
+        } else {
+        board.counts[i] = current + 1;
+        }
+
         board.updatedAt = Date.now();
         saveState();
 
+        // Only celebrate when we JUST reached completion
+        if(board.counts[i] === target){
         checkCelebrations();
-        render();
+        }
+
+          render();
+      });
+
+      // Long press to reset tile progress (undo)
+      // Works on mobile: touchstart + timeout
+      let pressTimer = null;
+      cell.addEventListener("touchstart", (e) => {
+        if(editMode || isCenter) return;
+        pressTimer = setTimeout(() => {
+          if((board.counts[i] || 0) > 0){
+            const ok = confirm("Reset progress for this square?");
+            if(ok){
+              board.counts[i] = 0;
+              // If you reset progress, you might want to allow re-celebration later:
+              // Reset celebrations for this month only if you want strict behavior. We'll keep celebrations as-is.
+              board.updatedAt = Date.now();
+              saveState();
+              render();
+            }
+          }
+        }, 550);
+      }, {passive:true});
+
+      cell.addEventListener("touchend", () => {
+        if(pressTimer) clearTimeout(pressTimer);
+        pressTimer = null;
+      });
+
+      cell.addEventListener("touchmove", () => {
+        if(pressTimer) clearTimeout(pressTimer);
+        pressTimer = null;
+      });
+
+      // Also allow right-click / long-press context menu on desktop
+      cell.addEventListener("contextmenu", (e) => {
+        e.preventDefault();
+        if(editMode || isCenter) return;
+        if((board.counts[i] || 0) > 0){
+          const ok = confirm("Reset progress for this square?");
+          if(ok){
+            board.counts[i] = 0;
+            board.updatedAt = Date.now();
+            saveState();
+            render();
+          }
+        }
       });
 
       $grid.appendChild(cell);
     }
 
-    const doneCount = board.done.filter((v, i) => v && i !== 12).length;
-    $progress.textContent = `${doneCount}/24 complete`;
+    const completeCount = board.counts
+      .map((_, i) => (i === 12 ? false : isComplete(board, i)))
+      .filter(Boolean).length;
+
+    $progress.textContent = `${completeCount}/24 complete`;
     $status.textContent = `Saved on this device • Last updated ${new Date(board.updatedAt).toLocaleString()}`;
   }
 
-  // ===== Celebrations =====
+  // ===== Bingo detection + celebrations =====
   const LINES = (() => {
     const lines = [];
     for(let r=0;r<5;r++) lines.push([...Array(5)].map((_,c)=> r*5 + c));
@@ -618,15 +790,10 @@
     return lines;
   })();
 
-  function isIndexComplete(board, idx){
-    if(idx === 12) return true; // free center
-    return !!board.done[idx];
-  }
-
   function completedLines(board){
     const completed = [];
     LINES.forEach((line, i) => {
-      if(line.every(idx => isIndexComplete(board, idx))) completed.push(i);
+      if(line.every(idx => isComplete(board, idx))) completed.push(i);
     });
     return completed;
   }
@@ -634,7 +801,7 @@
   function isFullCard(board){
     for(let i=0;i<25;i++){
       if(i === 12) continue;
-      if(!board.done[i]) return false;
+      if(!isComplete(board, i)) return false;
     }
     return true;
   }
@@ -671,49 +838,45 @@
   function checkCelebrations(){
     const board = getBoard();
 
+    // Lines
     const nowCompleted = completedLines(board);
     const newly = nowCompleted.filter(lineId => !board.celebrated.lines[String(lineId)]);
     if(newly.length){
       newly.forEach(lineId => board.celebrated.lines[String(lineId)] = true);
       board.updatedAt = Date.now();
       saveState();
+
       showToast(newly.length === 1 ? "BINGO! 🎉" : `BINGO x${newly.length}! 🎉`);
       burstConfetti(newly.length >= 2 ? 90 : 60, newly.length >= 2 ? 1800 : 1400);
     }
 
+    // Full card
     const full = isFullCard(board);
     if(full && !board.celebrated.full){
       board.celebrated.full = true;
       board.updatedAt = Date.now();
       saveState();
+
       showToast("FULL CARD! You did it ✨🎉");
       burstConfetti(140, 2400);
     }
   }
 
-  // ===== Reset Month =====
+  // ===== Reset month =====
   function resetMonth(){
     const m = MONTHS[Number($month.value)];
-    const ok = confirm(`Reset ${m}? This clears checkmarks & celebrations (keeps text).`);
+    const ok = confirm(`Reset ${m}? This clears progress & celebrations (keeps text & targets).`);
     if(!ok) return;
     const board = getBoard();
-    board.done = Array(25).fill(false);
+    board.counts = Array(25).fill(0);
+    board.counts[12] = 1;
     board.celebrated = { lines: {}, full: false };
     board.updatedAt = Date.now();
     saveState();
     render();
   }
 
-  // ===== Export / Import (no truncation) =====
-  function normalizeText(text){
-    return String(text || "")
-      .replace(/[\u2018\u2019]/g, "'")
-      .replace(/[\u201C\u201D]/g, '"')
-      .replace(/\u2026/g, "...")
-      .replace(/\u00A0/g, " ")
-      .trim();
-  }
-
+  // ===== Modal (Export / Import) =====
   function openModal(mode, initialText){
     modalMode = mode;
 
@@ -751,14 +914,31 @@
   }
 
   function exportAll(){
-    // Clone and normalize tiles so export is safe anywhere
-    const cleanBoards = JSON.parse(JSON.stringify(state.boards));
-    Object.values(cleanBoards).forEach(board => {
-      board.tiles = (board.tiles || []).map(t => normalizeText(t));
+  // Ensure we always have boards for every MONTHS entry (including Full Year)
+  state = normalizeState(state);
+  saveState();
+
+  // Build a clean boards object with explicit keys 0..MONTHS.length-1
+  const cleanBoards = {};
+  MONTHS.forEach((_, i) => {
+    cleanBoards[i] = JSON.parse(JSON.stringify(state.boards[i] || defaultBoard()));
+  });
+
+
+    // Normalize tile text + ensure targets/counts are valid
+    Object.values(cleanBoards).forEach(b => {
+      b.tiles = (b.tiles || []).map(t => normalizeText(t));
+      b.targets = Array.isArray(b.targets) ? b.targets.map(clampTarget) : Array(25).fill(1);
+      b.counts  = Array.isArray(b.counts) ? b.counts.map(x => Math.min(5, Math.max(0, Math.round(Number(x)||0)))) : Array(25).fill(0);
+      b.targets[12] = 1;
+      b.counts[12] = 1;
+      if(!b.celebrated) b.celebrated = { lines:{}, full:false };
+      if(!b.updatedAt) b.updatedAt = Date.now();
+      delete b.done;
     });
 
     const payload = {
-      version: 4,
+      version: 1,
       exportedAt: Date.now(),
       boards: cleanBoards
     };
@@ -775,13 +955,18 @@
     const payload = JSON.parse(cleaned);
 
     if(!payload || !payload.boards) throw new Error("Missing boards");
+
     state = normalizeState({ boards: payload.boards });
     saveState();
     render();
   }
 
   // ===== Events =====
-  $month.addEventListener("change", render);
+$month.addEventListener("change", () => {
+ localStorage.setItem("goals_bingo_last_view", $month.value);
+  render();
+});
+
   $editBtn.addEventListener("click", () => setEditMode(!editMode));
   $resetBtn.addEventListener("click", resetMonth);
   $exportBtn.addEventListener("click", exportAll);
@@ -820,9 +1005,11 @@
 
   // ===== Init =====
   initMonthSelect();
+  state = normalizeState(state);
+  saveState();
   setEditMode(false);
   render();
-  closeModal(); // guarantees modal never starts open
+  closeModal();
 
   // PWA service worker
   if ("serviceWorker" in navigator) {

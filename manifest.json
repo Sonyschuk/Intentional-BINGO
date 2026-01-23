@@ -1,8 +1,8 @@
 {
-  "name": "Goals Bingo",
-  "short_name": "Goals Bingo",
-  "start_url": "/Goals-BINGO/",
-  "scope": "/Goals-BINGO/",
+  "name": "Intentional Bingo",
+  "short_name": "Intentional Bingo",
+  "start_url": "/Intentional-BINGO/",
+  "scope": "/Intentional-BINGO/",
   "display": "standalone",
   "background_color": "#f4f6f8",
   "theme_color": "#0f5c66",
